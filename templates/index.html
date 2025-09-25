@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Math-Mate: AI Teaching Assistant </title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Math-Mate</h1>
+    </header>
+    <div class="welcome-bar">
+        Welcome, {{ username }} ({{ role }}) | <a href="{{ url_for('logout') }}" style="color:#fff;text-decoration:underline;">Logout</a>
+    </div>
+    <div class="container">
+        <div class="section">
+            <h2>Upload Homework</h2>
+            {% if role == "teacher" %}
+            <form method="post">
+                <textarea name="homework" rows="2" placeholder="Enter homework..."></textarea><br>
+                <button type="submit">Upload</button>
+            </form>
+            {% else %}
+            <p style="color:var(--accent);font-weight:500;">Only teachers can upload homework.</p>
+            {% endif %}
+            <div class="homework-list">
+                <h3>Homework List</h3>
+                <ul>
+                    {% for hw in homeworks %}
+                    <li>{{ hw }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="section">
+            <h2>Ask AI Assistant</h2>
+            <form method="post">
+                <input type="text" name="question" placeholder="Type your question...">
+                <button type="submit">Ask</button>
+            </form>
+            {% if ai_response %}
+            <div class="ai-response">{{ ai_response }}</div>
+            {% endif %}
+        </div>
+        <div class="section">
+            <h2>AI Interactions</h2>
+            <div class="interaction-list">
+                <ul>
+                    {% for i in interactions %}
+                    <li>
+                        <strong>User:</strong> {{ i.user }}<br>
+                        <strong>Q:</strong> {{ i.question }}<br>
+                        <strong>A:</strong> {{ i.response }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

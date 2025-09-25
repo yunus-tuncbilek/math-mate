@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up - Math-Mate</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Sign Up</h2>
+        <form method="post">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <select name="role" required>
+                <option value="">Select role</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+            </select><br>
+            <button type="submit">Sign Up</button>
+        </form>
+        <div class="msg">{{ msg }}</div>
+        <div class="link">
+            Already have an account? <a href="{{ url_for('login') }}">Login</a>
+        </div>
+    </div>
+</body>
+</html>
