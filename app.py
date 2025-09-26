@@ -24,18 +24,39 @@ users = load_json(USERS_FILE, {})  # username: {password, role}
 homeworks = load_json(HOMEWORKS_FILE, [])
 interactions = load_json(INTERACTIONS_FILE, [])
 
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    username = session["username"]
+    user = users.get(username)
+    msg = ""
+    if request.method == "POST":
+        # Allow user to update email and password
+        email = request.form.get("email", "")
+        password = request.form.get("password", "")
+        if email:
+            user["email"] = email
+        if password:
+            user["password"] = generate_password_hash(password)
+        users[username] = user
+        save_json(USERS_FILE, users)
+        msg = "Profile updated successfully."
+    return render_template("profile.html", user=user, username=username, msg=msg)
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     msg = ""
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        email = request.form["email"]
         role = request.form["role"]
         if username in users:
             msg = "Username already exists."
         else:
             hashed_pw = generate_password_hash(password)
-            users[username] = {"password": hashed_pw, "role": role}
+            users[username] = {"password": hashed_pw, "role": role, "email": email}
             save_json(USERS_FILE, users)
             msg = "Account created. Please log in."
             return redirect(url_for("login"))

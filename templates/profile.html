@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile - Math-Mate</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>User Profile</h2>
+        <form method="post">
+            <label>Username:</label>
+            <input type="text" value="{{ username }}" disabled><br>
+            <label>Email:</label>
+            <input type="text" name="email" value="{{ user.email if user.email else '' }}"><br>
+            <label>Role:</label>
+            <input type="text" value="{{ user.role }}" disabled><br>
+            <label>New Password:</label>
+            <input type="password" name="password" placeholder="Leave blank to keep current"><br>
+            <button type="submit">Update Profile</button>
+        </form>
+        <div class="msg">{{ msg }}</div>
+        <div class="link">
+            <a href="{{ url_for('index') }}">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

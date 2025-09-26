@@ -10,7 +10,9 @@
         <h1>Math-Mate</h1>
     </header>
     <div class="welcome-bar">
-        Welcome, {{ username }} ({{ role }}) | <a href="{{ url_for('logout') }}" style="color:#fff;text-decoration:underline;">Logout</a>
+        Welcome, {{ username }} ({{ role }}) |
+        <a href="{{ url_for('profile') }}" style="color:#fff;text-decoration:underline;">Profile</a> |
+        <a href="{{ url_for('logout') }}" style="color:#fff;text-decoration:underline;">Logout</a>
     </div>
     <div class="container">
         <div class="section">
