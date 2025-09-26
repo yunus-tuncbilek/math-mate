@@ -28,5 +28,5 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
    ```
 3. **Run the web application:**
    ```bash
-   python main.py
+   python app.py
    ```
