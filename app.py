@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, session, url_for
 import json
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from respond import get_ai_response
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -23,10 +24,6 @@ def save_json(filename, data):
 users = load_json(USERS_FILE, {})  # username: {password, role}
 homeworks = load_json(HOMEWORKS_FILE, [])
 interactions = load_json(INTERACTIONS_FILE, [])
-
-def get_ai_response(user_message):
-    # Dummy AI response for demonstration
-    return f"AI response to: {user_message}"
 
 @app.route("/profile", methods=["GET", "POST"])
 def profile():
@@ -100,7 +97,7 @@ def index():
             question = request.form["question"]
             # Start chat with initial question
             session["messages"] = [{"role": "user", "text": question},
-                                   {"role": "ai", "text": get_ai_response(question)}]
+                                   {"role": "ai", "text": get_ai_response(question, "")}]
             return redirect(url_for("chat"))
     return render_template(
         "index.html",
@@ -118,7 +115,7 @@ def chat():
     if request.method == "POST":
         user_message = request.form["message"]
         session["messages"].append({"role": "user", "text": user_message})
-        ai_reply = get_ai_response(user_message)
+        ai_reply = get_ai_response(user_message, session["messages"][:-1])
         session["messages"].append({"role": "ai", "text": ai_reply})
     return render_template("chat.html", messages=session["messages"])
 
