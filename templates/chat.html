@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Math-Mate Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Math-Mate Chat</h1>
+    </header>
+    <div class="container">
+        <div class="section">
+            <h2>Conversation with AI</h2>
+            <div class="interaction-list">
+                <ul>
+                    {% for msg in messages %}
+                    <li>
+                        {% if msg.role == 'user' %}
+                            <strong>You:</strong> {{ msg.text }}
+                        {% else %}
+                            <strong>AI:</strong> {{ msg.text }}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <form method="post">
+                <input type="text" name="message" placeholder="Type your message..." autofocus>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+        <div class="link">
+            <a href="{{ url_for('index') }}">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

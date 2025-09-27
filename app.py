@@ -24,6 +24,10 @@ users = load_json(USERS_FILE, {})  # username: {password, role}
 homeworks = load_json(HOMEWORKS_FILE, [])
 interactions = load_json(INTERACTIONS_FILE, [])
 
+def get_ai_response(user_message):
+    # Dummy AI response for demonstration
+    return f"AI response to: {user_message}"
+
 @app.route("/profile", methods=["GET", "POST"])
 def profile():
     if "username" not in session:
@@ -93,11 +97,11 @@ def index():
             homeworks.append(hw)
             save_json(HOMEWORKS_FILE, homeworks)
         if "question" in request.form:
-            q = request.form["question"]
-            # Simple AI assistant mockup
-            ai_response = f"AI Assistant: Let's think about '{q}' together!"
-            interactions.append({"question": q, "response": ai_response, "user": session["username"]})
-            save_json(INTERACTIONS_FILE, interactions)
+            question = request.form["question"]
+            # Start chat with initial question
+            session["messages"] = [{"role": "user", "text": question},
+                                   {"role": "ai", "text": get_ai_response(question)}]
+            return redirect(url_for("chat"))
     return render_template(
         "index.html",
         homeworks=homeworks,
@@ -106,6 +110,17 @@ def index():
         username=session["username"],
         role=session["role"]
     )
+
+@app.route("/chat", methods=["GET", "POST"])
+def chat():
+    if "messages" not in session:
+        session["messages"] = []
+    if request.method == "POST":
+        user_message = request.form["message"]
+        session["messages"].append({"role": "user", "text": user_message})
+        ai_reply = get_ai_response(user_message)
+        session["messages"].append({"role": "ai", "text": ai_reply})
+    return render_template("chat.html", messages=session["messages"])
 
 if __name__ == "__main__":
     app.run(debug=True)
