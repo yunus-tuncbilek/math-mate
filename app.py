@@ -141,6 +141,7 @@ def chat():
         session["messages"].append({"role": "user", "text": user_message})
         ai_reply = get_ai_response(user_message, session["messages"], homeworks)
         session["messages"].append({"role": "ai", "text": ai_reply})
+        session.modified = True
     return render_template("chat.html", messages=session["messages"])
 
 if __name__ == "__main__":
