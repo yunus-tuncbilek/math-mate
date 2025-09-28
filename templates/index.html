@@ -19,7 +19,9 @@
             <h2>Homework</h2>
             {% if role == "teacher" %}
             <form method="post">
-                <textarea name="homework" rows="2" placeholder="Enter homework..."></textarea><br>
+                <input type="text" name="title" placeholder="Homework Title" required><br>
+                <input type="text" name="class_name" placeholder="Class Name" required><br>
+                <textarea name="homework" rows="2" placeholder="Enter homework..." required></textarea><br>
                 <button type="submit">Upload</button>
             </form>
             {% endif %}
@@ -27,7 +29,17 @@
                 <h3>Homework List</h3>
                 <ul>
                     {% for hw in homeworks %}
-                    <li>{{ hw }}</li>
+                    <li>
+                        <strong>{{ hw.title }}</strong> ({{ hw.class }})<br>
+                        <em>By {{ hw.teacher }} on {{ hw.upload_time }}</em><br>
+                        {{ hw.content }}
+                        {% if role == "teacher" %}
+                        <form method="post" style="display:inline;">
+                            <input type="hidden" name="delete_hw_index" value="{{ loop.index0 }}">
+                            <button type="submit" style="background:#e53935;color:#fff;margin-top:0.5em;">Delete</button>
+                        </form>
+                        {% endif %}
+                    </li>
                     {% endfor %}
                 </ul>
             </div>

@@ -3,6 +3,7 @@ import json
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from respond import get_ai_response
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -88,16 +89,36 @@ def index():
     if "username" not in session:
         return redirect(url_for("login"))
     ai_response = ""
+    global homeworks
+    homeworks = load_json(HOMEWORKS_FILE, [])
     if request.method == "POST":
+        if session["role"] == "teacher" and "delete_hw_index" in request.form:
+            idx = int(request.form["delete_hw_index"])
+            if 0 <= idx < len(homeworks):
+                del homeworks[idx]
+                save_json(HOMEWORKS_FILE, homeworks)
         if session["role"] == "teacher" and "homework" in request.form:
-            hw = request.form["homework"]
-            homeworks.append(hw)
+            hw_text = request.form["homework"]
+            title = request.form.get("title", "")
+            class_name = request.form.get("class_name", "")
+            teacher_name = session["username"]
+            upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            homework_entry = {
+                "teacher": teacher_name,
+                "class": class_name,
+                "upload_time": upload_time,
+                "title": title,
+                "content": hw_text
+            }
+            homeworks.append(homework_entry)
             save_json(HOMEWORKS_FILE, homeworks)
         if "question" in request.form:
             question = request.form["question"]
-            # Start chat with initial question
-            session["messages"] = [{"role": "user", "text": question},
-                                   {"role": "ai", "text": get_ai_response(question, "")}]
+            homeworks = load_json(HOMEWORKS_FILE, [])
+            session["messages"] = [
+                {"role": "user", "text": question},
+                {"role": "ai", "text": get_ai_response(question, "", homeworks)}
+            ]
             return redirect(url_for("chat"))
     return render_template(
         "index.html",
@@ -110,12 +131,15 @@ def index():
 
 @app.route("/chat", methods=["GET", "POST"])
 def chat():
+    global homeworks
+    homeworks = load_json(HOMEWORKS_FILE, [])
     if "messages" not in session:
         session["messages"] = []
     if request.method == "POST":
         user_message = request.form["message"]
+        print(session['messages'])
         session["messages"].append({"role": "user", "text": user_message})
-        ai_reply = get_ai_response(user_message, session["messages"][:-1])
+        ai_reply = get_ai_response(user_message, session["messages"], homeworks)
         session["messages"].append({"role": "ai", "text": ai_reply})
     return render_template("chat.html", messages=session["messages"])
 
