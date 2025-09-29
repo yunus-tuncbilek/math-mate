@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Math-Mate: AI Teaching Assistant </title>
+    <title>Math-Mate: AI Teaching Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -18,54 +18,75 @@
         <div class="section">
             <h2>Homework</h2>
             {% if role == "teacher" %}
-            <form method="post">
-                <input type="text" name="title" placeholder="Homework Title" required><br>
-                <input type="text" name="class_name" placeholder="Class Name" required><br>
-                <textarea name="homework" rows="2" placeholder="Enter homework..." required></textarea><br>
+            <form method="post" style="margin-bottom:1em;">
+                <input type="text" name="title" placeholder="Homework Title" required>
+                <input type="text" name="class_name" placeholder="Class Name" required>
+                <textarea name="homework" rows="2" placeholder="Enter homework..." required></textarea>
                 <button type="submit">Upload</button>
             </form>
             {% endif %}
             <div class="homework-list">
                 <h3>Homework List</h3>
+                {% if homeworks %}
                 <ul>
                     {% for hw in homeworks %}
                     <li>
-                        <strong>{{ hw.title }}</strong> ({{ hw.class }})<br>
-                        <em>By {{ hw.teacher }} on {{ hw.upload_time }}</em><br>
-                        {{ hw.content }}
+                        <strong>{{ hw.title }}</strong> — <em>{{ hw.class }}</em><br>
+                        <small>By {{ hw.teacher }} · {{ hw.upload_time }}</small>
+                        <p>{{ hw.content }}</p>
                         {% if role == "teacher" %}
                         <form method="post" style="display:inline;">
                             <input type="hidden" name="delete_hw_index" value="{{ loop.index0 }}">
-                            <button type="submit" style="background:#e53935;color:#fff;margin-top:0.5em;">Delete</button>
+                            <button type="submit" style="background:#e53935;color:#fff;padding:0.25rem 0.5rem;border:none;border-radius:6px;">Delete</button>
                         </form>
                         {% endif %}
                     </li>
                     {% endfor %}
                 </ul>
+                {% else %}
+                <p>No homework uploaded yet.</p>
+                {% endif %}
             </div>
         </div>
+
         <div class="section">
             <h2>Ask AI Assistant</h2>
-            <form method="post">
-                <input type="text" name="question" placeholder="Type your question...">
-                <button type="submit">Ask</button>
+            <form method="post" class="ask-form">
+                <input type="text" name="question" class="ask-input" placeholder="Ask your question..." required>
+                <button type="submit" class="ask-button">Ask</button>
             </form>
             {% if ai_response %}
-            <div class="ai-response">{{ ai_response }}</div>
+            <div class="ai-response" style="margin-top:1rem;">{{ ai_response }}</div>
             {% endif %}
         </div>
+
         <div class="section">
             <h2>AI Interactions</h2>
             <div class="interaction-list">
-                <ul>
-                    {% for i in interactions %}
-                    <li>
-                        <strong>User:</strong> {{ i.user }}<br>
-                        <strong>Q:</strong> {{ i.question }}<br>
-                        <strong>A:</strong> {{ i.response }}
-                    </li>
+                {% if interactions %}
+                    {% for it in interactions %}
+                    <div class="container" style="margin-bottom:1rem;padding:1rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <strong>{{ it.student }}</strong>
+                            <small>{{ it.date }}</small>
+                        </div>
+                        <div style="margin-top:0.5rem;">
+                            <ul style="list-style:none;padding:0;margin:0;">
+                                {% for msg in it.messages %}
+                                <li style="margin:0.35rem 0;padding:0.5rem;border-radius:8px;background: {% if msg.role == 'ai' %}#f0f7ff{% else %}#f7f7f7{% endif %};">
+                                    <strong style="display:block;font-size:0.9rem;">
+                                        {% if msg.role == 'user' %}You:{% else %}AI:{% endif %}
+                                    </strong>
+                                    <span style="white-space:pre-wrap;">{{ msg.text }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
                     {% endfor %}
-                </ul>
+                {% else %}
+                    <p>No interactions yet.</p>
+                {% endif %}
             </div>
         </div>
     </div>

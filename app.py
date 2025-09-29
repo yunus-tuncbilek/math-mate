@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 import json
 import os
+import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 from respond import get_ai_response
 from datetime import datetime
@@ -89,8 +90,9 @@ def index():
     if "username" not in session:
         return redirect(url_for("login"))
     ai_response = ""
-    global homeworks
+    global homeworks, interactions
     homeworks = load_json(HOMEWORKS_FILE, [])
+    interactions = load_json(INTERACTIONS_FILE, [])
     if request.method == "POST":
         if session["role"] == "teacher" and "delete_hw_index" in request.form:
             idx = int(request.form["delete_hw_index"])
@@ -115,33 +117,84 @@ def index():
         if "question" in request.form:
             question = request.form["question"]
             homeworks = load_json(HOMEWORKS_FILE, [])
+            # start a new conversation and create a single interaction entry
             session["messages"] = [
                 {"role": "user", "text": question},
                 {"role": "ai", "text": get_ai_response(question, "", homeworks)}
             ]
+            # create a persistent interaction record and store its id in session
+            interaction_id = str(uuid.uuid4())
+            session["interaction_id"] = interaction_id
+            interaction_entry = {
+                "id": interaction_id,
+                "student": session.get("username"),
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "messages": list(session["messages"])
+            }
+            interactions.append(interaction_entry)
+            save_json(INTERACTIONS_FILE, interactions)
             return redirect(url_for("chat"))
+
+    # Only show interactions to teachers or the same student
+    visible_interactions = [
+        i for i in interactions
+        if session.get("role") == "teacher" or i.get("student") == session.get("username")
+    ]
+
     return render_template(
         "index.html",
         homeworks=homeworks,
         ai_response=ai_response,
-        interactions=interactions,
+        interactions=visible_interactions,
         username=session["username"],
         role=session["role"]
     )
 
 @app.route("/chat", methods=["GET", "POST"])
 def chat():
-    global homeworks
+    global homeworks, interactions
     homeworks = load_json(HOMEWORKS_FILE, [])
+    interactions = load_json(INTERACTIONS_FILE, [])
     if "messages" not in session:
         session["messages"] = []
     if request.method == "POST":
         user_message = request.form["message"]
-        print(session['messages'])
         session["messages"].append({"role": "user", "text": user_message})
-        ai_reply = get_ai_response(user_message, session["messages"], homeworks)
+        history = session["messages"][:-1]
+        ai_reply = get_ai_response(user_message, history, homeworks)
         session["messages"].append({"role": "ai", "text": ai_reply})
         session.modified = True
+
+        # Update the single interaction entry for this chat instead of appending a new one
+        interaction_id = session.get("interaction_id")
+        if interaction_id:
+            # find and update existing interaction
+            for it in interactions:
+                if it.get("id") == interaction_id:
+                    it["messages"] = list(session["messages"])
+                    it["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    break
+            else:
+                # fallback: create new interaction if not found
+                interactions.append({
+                    "id": interaction_id,
+                    "student": session.get("username"),
+                    "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "messages": list(session["messages"])
+                })
+        else:
+            # no interaction_id -> create one and append
+            interaction_id = str(uuid.uuid4())
+            session["interaction_id"] = interaction_id
+            interactions.append({
+                "id": interaction_id,
+                "student": session.get("username"),
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "messages": list(session["messages"])
+            })
+
+        save_json(INTERACTIONS_FILE, interactions)
+
     return render_template("chat.html", messages=session["messages"])
 
 if __name__ == "__main__":
