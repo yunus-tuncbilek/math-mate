@@ -1,3 +1,5 @@
+print("Loading LLM...")
+
 # suppress warnings
 import warnings
 warnings.filterwarnings("ignore")
