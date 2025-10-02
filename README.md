@@ -34,7 +34,6 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
 ## Planned features / TODO
 
 - Core AI chat
-  - Persist full conversation per student (single interaction record, update in-place)
   - Feedback prompt after each AI session (rating + optional comment)
 - Homework & content uploads
   - PDF upload for homework submissions
@@ -47,7 +46,6 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
   - Versioning / replace file workflow
 - Student / teacher UX
   - Show only student’s own interactions and teachers’ view of all interactions
-  - Ask button → open chat page with starter question prefilled
   - Session restore: resume unfinished chats
 - Processing & rendering
   - Strip LaTeX preamble and render math via MathJax
@@ -64,4 +62,5 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
   - UX polish and accessibility
 - Future enhancements
   - Teacher review tools / analytics on common student questions
+  - Per-teacher prompt templates
   - Exportable lesson packs from lecture notes + homework
