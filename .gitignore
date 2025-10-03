@@ -8,7 +8,9 @@
 *.log
 
 # Environment files
-.env
+*.env
+*.env.*
+venv
 
 # Python cache (if using Python)
 __pycache__/

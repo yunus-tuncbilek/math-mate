@@ -5,10 +5,16 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from together import Together
+import os
+
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 # Get Client
-your_api_key = "396a7aedf1b74f31a921f1bcc550f4a03768b4d7fc3596acb3bf90600051e425"
-client = Together(api_key=your_api_key)
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+if not TOGETHER_API_KEY:
+    raise ValueError("TOGETHER_API_KEY environment variable not set")
+client = Together(api_key=TOGETHER_API_KEY)
 
 def prompt_llm(prompt):
     # This function allows us to prompt an LLM via the Together API
@@ -16,7 +22,7 @@ def prompt_llm(prompt):
     # model
     model = "openai/gpt-oss-20b"
 
-    print(f"Using {model}")
+    # print(f"Using {model}")
 
     # # Calculate the number of tokens
     # tokens = len(prompt.split())
