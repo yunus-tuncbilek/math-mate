@@ -48,7 +48,7 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
   - Show only student’s own interactions and teachers’ view of all interactions
   - Session restore: resume unfinished chats
 - Processing & rendering
-  - Strip LaTeX preamble and render math via MathJax
+  - Strip LaTeX preamble / extract a MathJax-safe file from the homework
   - Extract data from the pdfs to include within the context (using VLMs)
 - Security & data
   - Access control for uploads and interactions
@@ -64,3 +64,5 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
   - Teacher review tools / analytics on common student questions
   - Per-teacher prompt templates
   - Exportable lesson packs from lecture notes + homework
+- Style
+  - Mitigate inline styling in index.html and use css classes
