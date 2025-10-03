@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <title>Math-Mate: AI Teaching Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      options: { skipHtmlTags: ['script','style','textarea','pre'] }
+    };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
     <header>
@@ -33,7 +40,9 @@
                     <li>
                         <strong>{{ hw.title }}</strong> — <em>{{ hw.class }}</em><br>
                         <small>By {{ hw.teacher }} · {{ hw.upload_time }}</small>
-                        <p>{{ hw.content }}</p>
+                        <div class="latex-content">
+                            {{ hw.latex }}
+                        </div>
                         {% if role == "teacher" %}
                         <form method="post" style="display:inline;">
                             <input type="hidden" name="delete_hw_index" value="{{ loop.index0 }}">
