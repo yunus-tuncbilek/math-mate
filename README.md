@@ -49,7 +49,7 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
   - Session restore: resume unfinished chats
 - Processing & rendering
   - Strip LaTeX preamble and render math via MathJax
-  - Optional OCR for image/PDF text extraction
+  - Extract data from the pdfs to include within the context (using VLMs)
 - Security & data
   - Access control for uploads and interactions
   - Sanitize inputs and uploaded files
