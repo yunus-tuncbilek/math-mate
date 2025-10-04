@@ -43,7 +43,7 @@ def get_ai_response(user_message, chat_history, homework):
 
     Instructions:
     - Make your answers at most 30 words
-    - Only give the response to the message
+    - Only give the response to the user's message
     - Give the students hints or suggestions
     - Do not provide direct answers to homework questions
     - If you don't know the answer, just say "I don't know"
@@ -52,18 +52,19 @@ def get_ai_response(user_message, chat_history, homework):
     - Be friendly and encouraging
     - If your last response included a question, wait for the student's reply before responding again
     - Please use the knowledge base to answer the question if relevant
+    - Use LaTeX syntax for mathematical expressions.
 
     Knowledge base:
     - Homework assignments:
     {homework}
 
     Error database:
-
-    Respond to the user's message below:
-    {user_message}
-
+    
     Here is your chat history with the user:
     {chat_history}
+    
+    Respond to the user's message below:
+    {user_message}
     """
 
     return prompt_llm(prompt)
