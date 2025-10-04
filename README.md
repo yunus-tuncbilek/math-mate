@@ -1,3 +1,13 @@
+---
+title: "App"
+emoji: "👀"
+colorFrom: "pink"
+colorTo: "indigo"
+sdk: "docker"
+pinned: false
+license: "apache-2.0"
+---
+
 # Math-Mate
 
 Math-Mate is a comprehensive web-based platform that serves as both a content management system and an AI-powered tutoring assistant for homework assignments. Designed for teachers, professors, and students, Math-Mate streamlines the homework process and enhances learning through intelligent support.
