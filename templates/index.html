@@ -41,7 +41,7 @@
                         <strong>{{ hw.title }}</strong> — <em>{{ hw.class }}</em><br>
                         <small>By {{ hw.teacher }} · {{ hw.upload_time }}</small>
                         <div class="latex-content">
-                            {{ hw.latex }}
+                            {{ hw.content }}
                         </div>
                         {% if role == "teacher" %}
                         <form method="post" style="display:inline;">
