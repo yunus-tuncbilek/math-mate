@@ -43,22 +43,33 @@ INTERACTIONS_FILE = "interactions.json"
 
 def load_json(filename, default):
     if os.path.exists(filename):
-        with open(filename, "r") as f:
-            return json.load(f)
+        with open(filename, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except Exception:
+                return default
     return default
 
 def save_json(filename, data):
-    with open(filename, "w") as f:
+    # atomic write to avoid corruption from concurrent processes
+    tmp = filename + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, filename)
 
 users = load_json(USERS_FILE, {})  # username: {password, role}
 homeworks = load_json(HOMEWORKS_FILE, [])
 interactions = load_json(INTERACTIONS_FILE, [])
 
-# register user loader now that users is loaded
+# register user loader now that users file exists
 @login_manager.user_loader
 def load_user(user_id):
-    if user_id in users:
+    # reload users each time to avoid stale in-memory copy on multi-process hosts
+    users_local = load_json(USERS_FILE, {})
+    if user_id in users_local:
+        # return fresh User instance that reads from the latest users file
         return User(user_id)
     return None
 
@@ -103,9 +114,11 @@ def signup():
 def login():
     msg = ""
     if request.method == "POST":
+        # reload users to ensure latest credentials are checked
+        users_local = load_json(USERS_FILE, {})
         username = request.form["username"]
         password = request.form["password"]
-        user = users.get(username)
+        user = users_local.get(username)
         if user and check_password_hash(user["password"], password):
             user_obj = User(username)
             login_user(user_obj)
