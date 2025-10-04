@@ -131,12 +131,12 @@ def index():
     homeworks = load_json(HOMEWORKS_FILE, [])
     interactions = load_json(INTERACTIONS_FILE, [])
     if request.method == "POST":
-        if session["role"] == "teacher" and "delete_hw_index" in request.form:
+        if current_user.role == "teacher" and "delete_hw_index" in request.form:
             idx = int(request.form["delete_hw_index"])
             if 0 <= idx < len(homeworks):
                 del homeworks[idx]
                 save_json(HOMEWORKS_FILE, homeworks)
-        if session["role"] == "teacher" and "homework" in request.form:
+        if current_user.role == "teacher" and "homework" in request.form:
             hw_text = request.form["homework"]
             title = request.form.get("title", "")
             class_name = request.form.get("class_name", "")
