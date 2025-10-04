@@ -4,6 +4,14 @@ import os
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 from respond import get_ai_response
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    login_required,
+    logout_user,
+    current_user,
+)
 from datetime import datetime
 
 app = Flask(__name__)
@@ -12,6 +20,23 @@ if not secret_key:
     raise ValueError("secret_key environment variable not set")
 app.secret_key = secret_key
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+# Simple User class backed by users.json
+class User(UserMixin):
+    def __init__(self, username):
+        self.id = username
+        info = users.get(username, {})
+        self.role = info.get("role")
+        self.email = info.get("email")
+
+    # Flask-Login uses get_id() from UserMixin which returns self.id
+
+
+# user loader must be set after users is loaded (users is defined below)
+# we'll set a loader function later after users variable is available
 USERS_FILE = "users.json"
 HOMEWORKS_FILE = "homeworks.json"
 INTERACTIONS_FILE = "interactions.json"
@@ -30,12 +55,18 @@ users = load_json(USERS_FILE, {})  # username: {password, role}
 homeworks = load_json(HOMEWORKS_FILE, [])
 interactions = load_json(INTERACTIONS_FILE, [])
 
+# register user loader now that users is loaded
+@login_manager.user_loader
+def load_user(user_id):
+    if user_id in users:
+        return User(user_id)
+    return None
+
 @app.route("/profile", methods=["GET", "POST"])
+@login_required
 def profile():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    username = session["username"]
-    user = users.get(username)
+    username = current_user.get_id()
+    user = users.get(username, {})
     msg = ""
     if request.method == "POST":
         # Allow user to update email and password
@@ -56,8 +87,8 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        email = request.form["email"]
-        role = request.form["role"]
+        email = request.form.get("email", "")
+        role = request.form.get("role", "student")
         if username in users:
             msg = "Username already exists."
         else:
@@ -76,22 +107,25 @@ def login():
         password = request.form["password"]
         user = users.get(username)
         if user and check_password_hash(user["password"], password):
-            session["username"] = username
-            session["role"] = user["role"]
+            user_obj = User(username)
+            login_user(user_obj)
             return redirect(url_for("index"))
         else:
             msg = "Invalid credentials."
     return render_template("login.html", msg=msg)
 
 @app.route("/logout")
+@login_required
 def logout():
-    session.clear()
+    logout_user()
+    # clear conversation state stored in session
+    session.pop("messages", None)
+    session.pop("interaction_id", None)
     return redirect(url_for("login"))
 
 @app.route("/", methods=["GET", "POST"])
+@login_required
 def index():
-    if "username" not in session:
-        return redirect(url_for("login"))
     ai_response = ""
     global homeworks, interactions
     homeworks = load_json(HOMEWORKS_FILE, [])
@@ -130,7 +164,7 @@ def index():
             session["interaction_id"] = interaction_id
             interaction_entry = {
                 "id": interaction_id,
-                "student": session.get("username"),
+                "student": current_user.get_id(),
                 "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "messages": list(session["messages"])
             }
@@ -141,7 +175,7 @@ def index():
     # Only show interactions to teachers or the same student
     visible_interactions = [
         i for i in interactions
-        if session.get("role") == "teacher" or i.get("student") == session.get("username")
+        if current_user.role == "teacher" or i.get("student") == current_user.get_id()
     ]
 
     return render_template(
@@ -149,11 +183,12 @@ def index():
         homeworks=homeworks,
         ai_response=ai_response,
         interactions=visible_interactions,
-        username=session["username"],
-        role=session["role"]
+        username=current_user.get_id(),
+        role=current_user.role
     )
 
 @app.route("/chat", methods=["GET", "POST"])
+@login_required
 def chat():
     global homeworks, interactions
     homeworks = load_json(HOMEWORKS_FILE, [])
@@ -181,7 +216,7 @@ def chat():
                 # fallback: create new interaction if not found
                 interactions.append({
                     "id": interaction_id,
-                    "student": session.get("username"),
+                    "student": current_user.get_id(),
                     "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "messages": list(session["messages"])
                 })
@@ -191,7 +226,7 @@ def chat():
             session["interaction_id"] = interaction_id
             interactions.append({
                 "id": interaction_id,
-                "student": session.get("username"),
+                "student": current_user.get_id(),
                 "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "messages": list(session["messages"])
             })
