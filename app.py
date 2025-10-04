@@ -7,7 +7,10 @@ from respond import get_ai_response
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
+secret_key = os.getenv("secret_key")
+if not secret_key:
+    raise ValueError("secret_key environment variable not set")
+app.secret_key = secret_key
 
 USERS_FILE = "users.json"
 HOMEWORKS_FILE = "homeworks.json"
