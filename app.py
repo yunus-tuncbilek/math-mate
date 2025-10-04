@@ -30,12 +30,14 @@ class User(UserMixin):
         self.id = username
         # Load latest users.json each time to avoid stale data across processes
         try:
-            info = load_json(USERS_FILE, {})
+            users = load_json(USERS_FILE, {})
         except Exception:
+            raise ValueError("Failed to load users data")
             # fallback to in-memory dict if loader not available yet
-            info = users.get(username, {})
-        self.role = info.get("role")
-        self.email = info.get("email")
+        self.user = users.get(username, {})
+
+        self.role = self.user.get("role")
+        self.email = self.user.get("email")
 
     # Flask-Login uses get_id() from UserMixin which returns self.id
 
