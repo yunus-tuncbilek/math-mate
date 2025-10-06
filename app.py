@@ -199,13 +199,16 @@ def index():
         if current_user.role == "teacher" or i.get("student") == current_user.get_id()
     ]
 
+    users = load_json(USERS_FILE, {})
+
     return render_template(
         "index.html",
         homeworks=homeworks,
         ai_response=ai_response,
         interactions=visible_interactions,
         username=current_user.get_id(),
-        role=current_user.role
+        role=current_user.role,
+        users=users
     )
 
 @app.route("/chat", methods=["GET", "POST"])
