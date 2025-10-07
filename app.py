@@ -131,7 +131,7 @@ def login():
 
         if user and check_password_hash(user["password"], password):
             user_obj = User(username)
-            print("User logged in:", login_user(user_obj))
+            login_user(user_obj)
             return redirect(url_for("index"))
         else:
             msg = "Invalid credentials."
