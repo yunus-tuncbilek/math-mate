@@ -36,7 +36,7 @@ def prompt_llm(prompt):
 
 print("LLM Ready!")
 
-'''respond function'''
+'''respond function for ai response to HW questions'''
 def get_ai_response(user_message, chat_history, homework):
     prompt = f"""
     You are a helpful AI Chatbot that loves to help students with their homework.
