@@ -1,4 +1,4 @@
-sample_hws = '''[
+sample_homeworks = '''[
   {
     "teacher": "mr_peoples",
     "class": "Mathematics 222: Calculus and Analytic Geometry II",
