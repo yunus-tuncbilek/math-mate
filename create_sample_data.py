@@ -18,10 +18,10 @@ def save_json(filename, data):
 save_json(USERS_FILE, json.loads(sample.sample_users))
 
 # escape backslashes so LaTeX like \sum, \int don't produce invalid JSON escapes
-cleaned = sample.sample_homeworks.replace("\", "\\")
+cleaned = sample.sample_homeworks.replace("\\", "\\\\")
 data = json.loads(cleaned)
 save_json(HOMEWORKS_FILE, data)
 
-cleaned = sample.sample_interactions.replace("\", "\\")
+cleaned = sample.sample_interactions.replace("\\", "\\\\")
 data = json.loads(cleaned)
 save_json(INTERACTIONS_FILE, data)
