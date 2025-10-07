@@ -18,7 +18,7 @@ sample_homeworks = '''[
     "class": "Mathematics 222: Calculus and Analytic Geometry II",
     "upload_time": "2025-10-04 11:29:13",
     "title": "(SAMPLE HW) Derivatives",
-    "content": "Find the derivative of each of the following functions.  You do not need to simplify your answers.   \r\n\r\n(a) $f(x) = \\frac{\\cos ^8 (x)}{(e^x)^{-2}}$\r\n\r\n(b) $f(x) = \\tan (\\sin ( x^2+1))$\r\n\r\n(c) $f(x) = \\sqrt{\\sin ^2(x) + \\cos ^2(x)}$\r\n(d) $f(x) = 2^{\\sin (x)}$\r\n"
+    "content": "Find the derivative of each of the following functions.  You do not need to simplify your answers.   (a) $f(x) = \\frac{\\cos ^8 (x)}{(e^x)^{-2}}$ (b) $f(x) = \\tan (\\sin ( x^2+1))$ (c) $f(x) = \\sqrt{\\sin ^2(x) + \\cos ^2(x)}$(d) $f(x) = 2^{\\sin (x)}$"
   }
 ]'''
 
