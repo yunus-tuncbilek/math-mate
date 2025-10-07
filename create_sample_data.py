@@ -1,5 +1,8 @@
 import sample
-from app import USERS_FILE, HOMEWORKS_FILE, INTERACTIONS_FILE   
+
+USERS_FILE = "users.json"
+HOMEWORKS_FILE = "homeworks.json"
+INTERACTIONS_FILE = "interactions.json"
 
 with open(USERS_FILE, 'w') as f:
     f.write(sample.sample_users)
