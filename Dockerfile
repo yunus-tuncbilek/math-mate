@@ -18,7 +18,7 @@ RUN pip install flask gunicorn pymupdf tiktoken
 EXPOSE 7860
 
 # create sample data on Hugging Face
-# RUN python create_sample_data.py
+RUN python create_sample_data.py
 
 # Run with Gunicorn
 CMD ["gunicorn", "--access-logfile", "-", "--log-level", "debug",  "-w", "1", "-b", "0.0.0.0:7860", "app:app"]
