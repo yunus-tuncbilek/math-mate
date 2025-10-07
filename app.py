@@ -126,7 +126,16 @@ def login():
         users_local = load_json(USERS_FILE, {})
         username = request.form["username"]
         password = request.form["password"]
+
+        print("Loaded users:", users_local)
+        print("Attempting login for:", username)
+        print("Password provided:", password)
+        
         user = users_local.get(username)
+
+        print("User found:", user)
+        print("Password hash:", check_password_hash(user["password"], password))
+
         if user and check_password_hash(user["password"], password):
             user_obj = User(username)
             login_user(user_obj)
