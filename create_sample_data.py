@@ -1,11 +1,11 @@
 import sample
-import app
+from app import USERS_FILE, HOMEWORKS_FILE, INTERACTIONS_FILE   
 
-with open(app.USERS_FILE, 'w') as f:
+with open(USERS_FILE, 'w') as f:
     f.write(sample.sample_users)
 
-with open(app.HOMEWORKS_FILE, 'w') as f:
+with open(HOMEWORKS_FILE, 'w') as f:
     f.write(sample.sample_homeworks)
 
-with open(app.INTERACTIONS_FILE, 'w') as f:
+with open(INTERACTIONS_FILE, 'w') as f:
     f.write(sample.sample_interactions)
