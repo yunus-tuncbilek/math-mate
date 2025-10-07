@@ -115,6 +115,7 @@ def signup():
             save_json(USERS_FILE, users)
             msg = "Account created. Please log in."
             return redirect(url_for("login"))
+    print(USERS_FILE, users)
     return render_template("signup.html", msg=msg)
 
 @app.route("/login", methods=["GET", "POST"])
