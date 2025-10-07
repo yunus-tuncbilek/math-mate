@@ -99,26 +99,6 @@
             </div>
         </div>
 
-        <!-- New: Raw JSON dump (passwords removed) -->
-        <div class="section">
-            <h2>Raw Data (no passwords)</h2>
-            <pre class="json-dump" style="background:#fff;border:1px solid #e5e7eb;padding:1rem;overflow:auto;max-height:360px;">
-{
-  "users": [
-  {% if users %}
-    {% for name, info in users.items() %}
-      { "username": "{{ name }}", "role": "{{ info.get('role','') }}", "email": "{{ info.get('email','') }}" }{% if not loop.last %},{% endif %}
-    {% endfor %}
-  {% else %}
-    /* users not provided to template */
-  {% endif %}
-  ],
-  "homeworks": {{ homeworks | tojson(indent=2) }},
-  "interactions": {{ interactions | tojson(indent=2) }}
-}
-            </pre>
-        </div>
-
     </div>
 </body>
 </html>
