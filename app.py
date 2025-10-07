@@ -28,9 +28,16 @@ login_manager.login_view = "login"
 class User(UserMixin):
     def __init__(self, username):
         self.id = username
-        info = users.get(username, {})
-        self.role = info.get("role")
-        self.email = info.get("email")
+        # Load latest users.json each time to avoid stale data across processes
+        try:
+            users = load_json(USERS_FILE, {})
+        except Exception:
+            raise ValueError("Failed to load users data")
+            # fallback to in-memory dict if loader not available yet
+        self.user = users.get(username, {})
+
+        self.role = self.user.get("role")
+        self.email = self.user.get("email")
 
     # Flask-Login uses get_id() from UserMixin which returns self.id
 
@@ -108,6 +115,7 @@ def signup():
             save_json(USERS_FILE, users)
             msg = "Account created. Please log in."
             return redirect(url_for("login"))
+    print(USERS_FILE, users)
     return render_template("signup.html", msg=msg)
 
 @app.route("/login", methods=["GET", "POST"])
@@ -153,7 +161,8 @@ def index():
             hw_text = request.form["homework"]
             title = request.form.get("title", "")
             class_name = request.form.get("class_name", "")
-            teacher_name = session["username"]
+            # use current_user rather than session to get reliable username
+            teacher_name = current_user.get_id()
             upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             homework_entry = {
                 "teacher": teacher_name,
@@ -191,13 +200,16 @@ def index():
         if current_user.role == "teacher" or i.get("student") == current_user.get_id()
     ]
 
+    users = load_json(USERS_FILE, {})
+
     return render_template(
         "index.html",
         homeworks=homeworks,
         ai_response=ai_response,
         interactions=visible_interactions,
         username=current_user.get_id(),
-        role=current_user.role
+        role=current_user.role,
+        users=users
     )
 
 @app.route("/chat", methods=["GET", "POST"])
