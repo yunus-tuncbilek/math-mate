@@ -41,7 +41,31 @@
                         <strong>{{ hw.title }}</strong> — <em>{{ hw.class }}</em><br>
                         <small>By {{ hw.teacher }} · {{ hw.upload_time }}</small>
                         <div class="latex-content">
-                            {{ hw.content }}
+                            {% if hw.file %}
+                            <div class="pdf-container">
+                                <!-- iframe for PDF viewing; points to static/<hw.file> -->
+                                <iframe class="pdf-viewer"
+                                        src="{{ url_for('static', filename=hw.file) }}"
+                                        title="Homework PDF: {{ hw.title }}"
+                                        frameborder="0"
+                                        aria-label="PDF viewer for {{ hw.title }}"></iframe>
+
+                                <div class="pdf-actions">
+                                    <a class="btn" href="{{ url_for('static', filename=hw.file) }}" target="_blank" rel="noopener">Open in new tab</a>
+                                    <a class="btn" href="{{ url_for('static', filename=hw.file) }}" download>Download PDF</a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if hw.latex %}
+                            <div class="latex-rendered">
+                                {{ hw.latex | safe }}
+                            </div>
+                            {% elif hw.content %}
+                            <div class="latex-rendered">
+                                {{ hw.content | safe }}
+                            </div>
+                            {% endif %}
                         </div>
                         {% if role == "teacher" %}
                         <form method="post" style="display:inline;">
@@ -56,6 +80,26 @@
                 <p>No homework uploaded yet.</p>
                 {% endif %}
             </div>
+        </div>
+
+        <div class="section">
+            <h2>Upload Homework PDF</h2>
+            {% if current_user.is_authenticated and current_user.role == 'teacher' %}
+            <form action="{{ url_for('upload_homework') }}" method="post" enctype="multipart/form-data" class="upload-form">
+                <div>
+                    <label>Title<br><input type="text" name="title" required></label>
+                </div>
+                <div>
+                    <label>Class<br><input type="text" name="class_name"></label>
+                </div>
+                <div>
+                    <label>PDF file<br><input type="file" name="pdf" accept="application/pdf" required></label>
+                </div>
+                <div><button type="submit">Upload</button></div>
+            </form>
+            {% else %}
+            <p>Only teachers can upload homework PDFs.</p>
+            {% endif %}
         </div>
 
         <div class="section">

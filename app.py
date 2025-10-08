@@ -2,7 +2,9 @@ from flask import Flask, render_template, request, redirect, session, url_for
 import json
 import os
 import uuid
+import time
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from respond import get_ai_response
 from flask_login import (
     LoginManager,
@@ -48,6 +50,11 @@ USERS_FILE = "users.json"
 HOMEWORKS_FILE = "homeworks.json"
 INTERACTIONS_FILE = "interactions.json"
 
+# upload settings
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
+ALLOWED_EXT = {".pdf"}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 def load_json(filename, default):
     if os.path.exists(filename):
         with open(filename, "r", encoding="utf-8") as f:
@@ -65,6 +72,9 @@ def save_json(filename, data):
         f.flush()
         os.fsync(f.fileno())
     os.replace(tmp, filename)
+
+def allowed_file(filename: str) -> bool:
+    return os.path.splitext(filename.lower())[1] in ALLOWED_EXT
 
 users = load_json(USERS_FILE, {})  # username: {password, role}
 homeworks = load_json(HOMEWORKS_FILE, [])
@@ -261,6 +271,38 @@ def chat():
         save_json(INTERACTIONS_FILE, interactions)
 
     return render_template("chat.html", messages=session["messages"])
+
+@app.route("/upload_homework", methods=["POST"])
+@login_required
+def upload_homework():
+    # only teachers may upload
+    if getattr(current_user, "role", None) != "teacher":
+        return "Forbidden", 403
+
+    file = request.files.get("pdf")
+    title = request.form.get("title", "").strip()
+    class_name = request.form.get("class_name", "").strip()
+
+    if not file or file.filename == "" or not allowed_file(file.filename):
+        return redirect(url_for("index"))
+
+    filename = secure_filename(f"{int(time.time())}_{file.filename}")
+    dest_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(dest_path)
+
+    # append metadata to homeworks.json
+    homeworks = load_json(HOMEWORKS_FILE, [])
+    hw_entry = {
+        "teacher": current_user.get_id(),
+        "class": class_name,
+        "upload_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "title": title,
+        "file": os.path.join("uploads", filename)
+    }
+    homeworks.append(hw_entry)
+    save_json(HOMEWORKS_FILE, homeworks)
+
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.run(debug=True)

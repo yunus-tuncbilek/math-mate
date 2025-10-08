@@ -122,6 +122,48 @@ button:hover {
     color: var(--primary);
     text-decoration: underline;
 }
+
+/* PDF viewer styles */
+.pdf-container {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pdf-viewer {
+  width: 100%;
+  height: 60vh;          /* responsive height */
+  min-height: 420px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 6px;
+}
+
+/* small toolbar under the viewer */
+.pdf-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* simple button look */
+.btn {
+  display: inline-block;
+  background: #1f8ed6;
+  color: #fff;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.btn:hover { opacity: 0.95; }
+
+/* ensure latex content still renders nicely under the viewer */
+.latex-rendered {
+  margin-top: 0.5rem;
+  line-height: 1.45;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 1em;
