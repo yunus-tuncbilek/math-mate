@@ -56,6 +56,7 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
   - Session restore: resume unfinished chats
 - Processing & rendering
   - Strip LaTeX preamble / extract a MathJax-safe file from the homework
+  - Consider the possibility of using markdown for math instead of MathJax 
   - Extract data from the pdfs to include within the context (using VLMs)
 - Security & data
   - Access control for uploads and interactions
