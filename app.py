@@ -5,7 +5,7 @@ import uuid
 import time
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from respond import get_ai_response
+from respond import get_ai_response, closest_chunk_from_rag
 from flask_login import (
     LoginManager,
     UserMixin,
@@ -188,10 +188,13 @@ def index():
         if "question" in request.form:
             question = request.form["question"]
             homeworks = load_json(HOMEWORKS_FILE, [])
+            
+            closest_lecture = closest_chunk_from_rag(question)
+
             # start a new conversation and create a single interaction entry
             session["messages"] = [
                 {"role": "user", "text": question},
-                {"role": "ai", "text": get_ai_response(question, "", homeworks)}
+                {"role": "ai", "text": get_ai_response(question, "", homeworks, lecture=closest_lecture), "source": closest_lecture}
             ]
             # create a persistent interaction record and store its id in session
             interaction_id = str(uuid.uuid4())
@@ -236,8 +239,9 @@ def chat():
         user_message = request.form["message"]
         session["messages"].append({"role": "user", "text": user_message})
         history = session["messages"][:-1]
-        ai_reply = get_ai_response(user_message, history, homeworks)
-        session["messages"].append({"role": "ai", "text": ai_reply})
+        closest_lecture = closest_chunk_from_rag(user_message)
+        ai_reply = get_ai_response(user_message, history, homeworks, lecture=closest_lecture)
+        session["messages"].append({"role": "ai", "text": ai_reply, "source": closest_lecture})
         session.modified = True
 
         # Update the single interaction entry for this chat instead of appending a new one

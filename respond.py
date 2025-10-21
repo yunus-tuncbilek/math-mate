@@ -6,6 +6,7 @@ warnings.filterwarnings("ignore")
 
 from together import Together
 import os
+from rag import rag_utils
 
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
@@ -37,7 +38,7 @@ def prompt_llm(prompt):
 print("LLM Ready!")
 
 '''respond function for ai response to HW questions'''
-def get_ai_response(user_message, chat_history, homework):
+def get_ai_response(user_message, chat_history="", homework="", lecture=""):
     prompt = f"""
     You are a helpful AI Chatbot that loves to help students with their homework.
 
@@ -58,6 +59,9 @@ def get_ai_response(user_message, chat_history, homework):
     - Homework assignments:
     {homework}
 
+    - Lecture notes:
+    {lecture}
+
     Error database:
     
     Here is your chat history with the user:
@@ -68,3 +72,18 @@ def get_ai_response(user_message, chat_history, homework):
     """
 
     return prompt_llm(prompt)
+
+def closest_chunk_from_rag(question):
+    data_file = "rag/data/lectures.txt"
+    data_txt = rag_utils.load_data(data_file)
+
+    chunks = rag_utils.get_chunks(data_txt)
+    embeddings = rag_utils.get_embeddings(chunks)
+
+    # RETRIEVE CLOSEST CHUNK
+    # -----------------------
+    closest_chunk, similarity, chunk_idx, query_embedding, all_similarities = (
+        rag_utils.retrieve_closest_chunk(question, chunks, embeddings)
+    )
+
+    return closest_chunk

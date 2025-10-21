@@ -172,3 +172,10 @@ button:hover {
         font-size: 1.5rem;
     }
 }
+
+.source {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    display: block;
+}

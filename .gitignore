@@ -22,3 +22,5 @@ Thumbs.db
 *.json
 
 static/uploads/*
+
+rag/data/*

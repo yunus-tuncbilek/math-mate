@@ -27,6 +27,9 @@
                             <strong>You:</strong> {{ msg.text }}
                         {% else %}
                             <strong>AI:</strong> {{ msg.text }}
+                            {% if msg.source %}
+                                <small class="source">Source: {{ msg.source.split()[:10] | join(' ') }}...</small>
+                            {% endif %}
                         {% endif %}
                     </li>
                     {% endfor %}
