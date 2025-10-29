@@ -142,7 +142,6 @@ def logout():
 @login_required
 def index():
     ai_response = ""
-    global homeworks, interactions
     homeworks = load_json(DATA_FOLDER, HOMEWORKS_FILE, [])
     interactions = load_json(DATA_FOLDER, INTERACTIONS_FILE, [])
     if request.method == "POST":
@@ -212,7 +211,6 @@ def index():
 @app.route("/chat", methods=["GET", "POST"])
 @login_required
 def chat():
-    global homeworks, interactions
     homeworks = load_json(DATA_FOLDER, HOMEWORKS_FILE, [])
     interactions = load_json(DATA_FOLDER, INTERACTIONS_FILE, [])
     if "messages" not in session:
