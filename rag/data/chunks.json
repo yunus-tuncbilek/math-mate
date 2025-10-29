@@ -1,0 +1,6 @@
+[
+  "Lecture**",
+  "Lecture1: Partial Fractions**\nWhen integrating rational functions, decompose the fraction into simpler parts called partial fractions. Each term should have a denominator that is a factor of the original one. For linear factors, use constants; for irreducible quadratics, use linear numerators. After decomposing, integrate term by term. Example:\n(5x - 1) / ((x - 1)(x + 2)) = A / (x - 1) + B / (x + 2).\nSolve for A and B, then integrate.\n\n---\n\n**",
+  "Lecture2: Series**\nA series \u03a3 a_n converges if its partial sums approach a finite limit. Key tests:\n\n* p-Series: \u03a3 (1 / n^p) converges for p > 1.\n* Comparison Test: Compare with a known convergent or divergent series.\n* Alternating Series Test: If terms alternate in sign, decrease in magnitude, and approach zero, the series converges.\n\n---\n\n**",
+  "Lecture3: Derivatives**\nTo differentiate complex functions, use the rules systematically:\n\n* Product Rule: (fg)' = f'g + fg'\n* Quotient Rule: (f/g)' = (f'g - fg') / g\u00b2\n* Chain Rule: For composite functions, multiply the derivative of the outer function by that of the inner function.\n  Practice with trigonometric, exponential, and nested functions like f(x) = tan(sin(x\u00b2 + 1)) to strengthen fluency."
+]
