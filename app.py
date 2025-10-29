@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, session, url_for
-import json
 import os
 import uuid
 import time
@@ -15,6 +14,7 @@ from flask_login import (
     current_user,
 )
 from datetime import datetime
+from app_utils import load_json, save_json
 
 app = Flask(__name__)
 secret_key = os.getenv("secret_key")
@@ -32,10 +32,9 @@ class User(UserMixin):
         self.id = username
         # Load latest users.json each time to avoid stale data across processes
         try:
-            users = load_json(USERS_FILE, {})
+            users = load_json(DATA_FOLDER, USERS_FILE, {})
         except Exception:
             raise ValueError("Failed to load users data")
-            # fallback to in-memory dict if loader not available yet
         self.user = users.get(username, {})
 
         self.role = self.user.get("role")
@@ -49,42 +48,25 @@ class User(UserMixin):
 USERS_FILE = "users.json"
 HOMEWORKS_FILE = "homeworks.json"
 INTERACTIONS_FILE = "interactions.json"
+DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data") 
 
 # upload settings
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 ALLOWED_EXT = {".pdf"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def load_json(filename, default):
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as f:
-            try:
-                return json.load(f)
-            except Exception:
-                return default
-    return default
-
-def save_json(filename, data):
-    # atomic write to avoid corruption from concurrent processes
-    tmp = filename + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp, filename)
-
 def allowed_file(filename: str) -> bool:
     return os.path.splitext(filename.lower())[1] in ALLOWED_EXT
 
-users = load_json(USERS_FILE, {})  # username: {password, role}
-homeworks = load_json(HOMEWORKS_FILE, [])
-interactions = load_json(INTERACTIONS_FILE, [])
+users = load_json(DATA_FOLDER, USERS_FILE, {})  # username: {password, role}
+homeworks = load_json(DATA_FOLDER, HOMEWORKS_FILE, [])
+interactions = load_json(DATA_FOLDER, INTERACTIONS_FILE, [])
 
 # register user loader now that users file exists
 @login_manager.user_loader
 def load_user(user_id):
     # reload users each time to avoid stale in-memory copy on multi-process hosts
-    users_local = load_json(USERS_FILE, {})
+    users_local = load_json(DATA_FOLDER, USERS_FILE, {})
     if user_id in users_local:
         # return fresh User instance that reads from the latest users file
         return User(user_id)
@@ -105,7 +87,7 @@ def profile():
         if password:
             user["password"] = generate_password_hash(password)
         users[username] = user
-        save_json(USERS_FILE, users)
+        save_json(DATA_FOLDER, USERS_FILE, users)
         msg = "Profile updated successfully."
     return render_template("profile.html", user=user, username=username, msg=msg)
 
@@ -122,7 +104,7 @@ def signup():
         else:
             hashed_pw = generate_password_hash(password)
             users[username] = {"password": hashed_pw, "role": role, "email": email}
-            save_json(USERS_FILE, users)
+            save_json(DATA_FOLDER, USERS_FILE, users)
             msg = "Account created. Please log in."
             return redirect(url_for("login"))
     print(USERS_FILE, users)
@@ -133,7 +115,7 @@ def login():
     msg = ""
     if request.method == "POST":
         # reload users to ensure latest credentials are checked
-        users_local = load_json(USERS_FILE, {})
+        users_local = load_json(DATA_FOLDER, USERS_FILE, {})
         username = request.form["username"]
         password = request.form["password"]
         
@@ -161,14 +143,14 @@ def logout():
 def index():
     ai_response = ""
     global homeworks, interactions
-    homeworks = load_json(HOMEWORKS_FILE, [])
-    interactions = load_json(INTERACTIONS_FILE, [])
+    homeworks = load_json(DATA_FOLDER, HOMEWORKS_FILE, [])
+    interactions = load_json(DATA_FOLDER, INTERACTIONS_FILE, [])
     if request.method == "POST":
         if current_user.role == "teacher" and "delete_hw_index" in request.form:
             idx = int(request.form["delete_hw_index"])
             if 0 <= idx < len(homeworks):
                 del homeworks[idx]
-                save_json(HOMEWORKS_FILE, homeworks)
+                save_json(DATA_FOLDER, HOMEWORKS_FILE, homeworks)
         if current_user.role == "teacher" and "homework" in request.form:
             hw_text = request.form["homework"]
             title = request.form.get("title", "")
@@ -184,10 +166,10 @@ def index():
                 "content": hw_text
             }
             homeworks.append(homework_entry)
-            save_json(HOMEWORKS_FILE, homeworks)
+            save_json(DATA_FOLDER, HOMEWORKS_FILE, homeworks)
         if "question" in request.form:
             question = request.form["question"]
-            homeworks = load_json(HOMEWORKS_FILE, [])
+            homeworks = load_json(DATA_FOLDER, HOMEWORKS_FILE, [])
             
             closest_lecture = closest_chunk_from_rag(question)
 
@@ -206,7 +188,7 @@ def index():
                 "messages": list(session["messages"])
             }
             interactions.append(interaction_entry)
-            save_json(INTERACTIONS_FILE, interactions)
+            save_json(DATA_FOLDER, INTERACTIONS_FILE, interactions)
             return redirect(url_for("chat"))
 
     # Only show interactions to teachers or the same student
@@ -215,7 +197,7 @@ def index():
         if current_user.role == "teacher" or i.get("student") == current_user.get_id()
     ]
 
-    users = load_json(USERS_FILE, {})
+    users = load_json(DATA_FOLDER, USERS_FILE, {})
 
     return render_template(
         "index.html",
@@ -231,8 +213,8 @@ def index():
 @login_required
 def chat():
     global homeworks, interactions
-    homeworks = load_json(HOMEWORKS_FILE, [])
-    interactions = load_json(INTERACTIONS_FILE, [])
+    homeworks = load_json(DATA_FOLDER, HOMEWORKS_FILE, [])
+    interactions = load_json(DATA_FOLDER, INTERACTIONS_FILE, [])
     if "messages" not in session:
         session["messages"] = []
     if request.method == "POST":
@@ -272,7 +254,7 @@ def chat():
                 "messages": list(session["messages"])
             })
 
-        save_json(INTERACTIONS_FILE, interactions)
+        save_json(DATA_FOLDER, INTERACTIONS_FILE, interactions)
 
     return render_template("chat.html", messages=session["messages"])
 
@@ -295,7 +277,7 @@ def upload_homework():
     file.save(dest_path)
 
     # append metadata to homeworks.json
-    homeworks = load_json(HOMEWORKS_FILE, [])
+    homeworks = load_json(DATA_FOLDER, HOMEWORKS_FILE, [])
     hw_entry = {
         "teacher": current_user.get_id(),
         "class": class_name,
@@ -304,7 +286,7 @@ def upload_homework():
         "file": os.path.join("uploads", filename)
     }
     homeworks.append(hw_entry)
-    save_json(HOMEWORKS_FILE, homeworks)
+    save_json(DATA_FOLDER, HOMEWORKS_FILE, homeworks)
 
     return redirect(url_for("index"))
 
