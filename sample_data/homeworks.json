@@ -1,0 +1,23 @@
+[
+    {
+        "teacher": "mr_peoples",
+        "class": "Mathematics 222: Calculus and Analytic Geometry II",
+        "upload_time": "2025-10-01 23:22:47",
+        "title": "(SAMPLE HW) Partial Fractions",
+        "content": "Problem 1: The integral $\\int \\frac{5x - 1}{(x-1)(x+2)} \\, dx$ is to be evaluated using partial fraction decomposition. Problem 2: The integral $\\int \\frac{x^2 + 1}{x(x^2+4)} \\, dx$ is to be evaluated using partial fraction decomposition."
+    },
+    {
+        "teacher": "mr_peoples",
+        "class": "Mathematics 222: Calculus and Analytic Geometry II",
+        "upload_time": "2025-10-02 00:00:22",
+        "title": "(SAMPLE HW)Series",
+        "content": "For the following series, determine if they converge or diverge. Clearly state the test you use and show your work. 1) The series $\\sum_{n=1}^{\\infty} \\frac{4n^{2}+3}{n^{3}}$. 2) The series $\\sum_{n=1}^{\\infty} \\frac{(-1)^{n} n}{n+1}$."
+    },
+    {
+        "teacher": "mr_alex",
+        "class": "Mathematics 222: Calculus and Analytic Geometry II",
+        "upload_time": "2025-10-04 11:29:13",
+        "title": "(SAMPLE HW) Derivatives",
+        "content": "Find the derivative of each of the following functions.  You do not need to simplify your answers.   (a) $f(x) = \\frac{\\cos ^8 (x)}{(e^x)^{-2}}$ (b) $f(x) = \\tan (\\sin ( x^2+1))$ (c) $f(x) = \\sqrt{\\sin ^2(x) + \\cos ^2(x)}$(d) $f(x) = 2^{\\sin (x)}$"
+    }
+]

@@ -1,0 +1,27 @@
+{
+    "mr_peoples": {
+        "password": "scrypt:32768:8:1$lmb8mA9BXhuMrrqO$6dcd9c53d7b0476a5b63330e99e56b89e8f1a308af1645a32d6d735514f8d939b7de9b1d41c524a5bf952a6262c1bb99a54c73ebcf00e5a69c0705f5a0bf757d",
+        "role": "teacher",
+        "email": "yt231@school.edu"
+    },
+    "mr_alex": {
+        "password": "scrypt:32768:8:1$lmb8mA9BXhuMrrqO$6dcd9c53d7b0476a5b63330e99e56b89e8f1a308af1645a32d6d735514f8d939b7de9b1d41c524a5bf952a6262c1bb99a54c73ebcf00e5a69c0705f5a0bf757d",
+        "role": "teacher",
+        "email": "mr_alex@gmail.com"
+    },
+    "gabe": {
+        "password": "scrypt:32768:8:1$lmb8mA9BXhuMrrqO$6dcd9c53d7b0476a5b63330e99e56b89e8f1a308af1645a32d6d735514f8d939b7de9b1d41c524a5bf952a6262c1bb99a54c73ebcf00e5a69c0705f5a0bf757d",
+        "role": "student",
+        "email": "gabelewis@gmail.com"
+    },
+    "michael": {
+        "password": "scrypt:32768:8:1$lmb8mA9BXhuMrrqO$6dcd9c53d7b0476a5b63330e99e56b89e8f1a308af1645a32d6d735514f8d939b7de9b1d41c524a5bf952a6262c1bb99a54c73ebcf00e5a69c0705f5a0bf757d",
+        "role": "student",
+        "email": "michaelscott@school.edu"
+    },
+    "ahmed": {
+        "password": "scrypt:32768:8:1$lmb8mA9BXhuMrrqO$6dcd9c53d7b0476a5b63330e99e56b89e8f1a308af1645a32d6d735514f8d939b7de9b1d41c524a5bf952a6262c1bb99a54c73ebcf00e5a69c0705f5a0bf757d",
+        "role": "student",
+        "email": "ahmed@school.edu"
+    }
+}
