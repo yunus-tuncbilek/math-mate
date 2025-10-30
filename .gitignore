@@ -22,3 +22,6 @@ Thumbs.db
 data/*.json
 
 static/uploads/*
+
+rag/data/chunks.json
+rag/data/dataembeddings.pkl

@@ -186,6 +186,19 @@ def retrieve_closest_chunk(
             similarities,
         )
 
+def load_chunks(file_path):
+    """Load chunks from a JSON file."""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Chunks file not found: {file_path}")
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def load_embeddings(file_path):
+    """Load embeddings from a pickle file."""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Embeddings file not found: {file_path}")
+    with open(file_path, "rb") as f:
+        return pickle.load(f)
 
 def get_rag_with_chunk(query, closest_chunk, chunk_index=None, save_to=None):
     """Generate RAG response using the closest chunk and prompt_llm."""

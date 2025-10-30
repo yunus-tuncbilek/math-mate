@@ -74,11 +74,20 @@ def get_ai_response(user_message, chat_history="", homework="", lecture=""):
     return prompt_llm(prompt)
 
 def closest_chunk_from_rag(question):
-    data_file = "rag/data/lectures.txt"
-    data_txt = rag_utils.load_data(data_file)
 
-    chunks = rag_utils.get_chunks(data_txt)
-    embeddings = rag_utils.get_embeddings(chunks)
+    CHUNKS_FILE = "rag/data/chunks.json"
+    EMBEDDINGS_FILE = "rag/data/dataembeddings.pkl"
+    
+    #check if chunks and embeddings file exists
+    if os.path.exists(CHUNKS_FILE) and os.path.exists(EMBEDDINGS_FILE):
+        chunks = rag_utils.load_chunks(CHUNKS_FILE)
+        embeddings = rag_utils.load_embeddings(EMBEDDINGS_FILE)
+    else:
+        data_file = "rag/data/lectures.txt"
+        data_txt = rag_utils.load_data(data_file)
+
+        chunks = rag_utils.get_chunks(data_txt, save_to=CHUNKS_FILE)
+        embeddings = rag_utils.get_embeddings(chunks, save_to=EMBEDDINGS_FILE)
 
     # RETRIEVE CLOSEST CHUNK
     # -----------------------
