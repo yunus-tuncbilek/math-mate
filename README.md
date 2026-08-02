@@ -1,5 +1,5 @@
 ---
-title: "App"
+title: "Math-Mate"
 emoji: "👀"
 colorFrom: "pink"
 colorTo: "indigo"
