@@ -25,3 +25,6 @@ static/uploads/*
 
 rag/data/chunks.json
 rag/data/dataembeddings.pkl
+
+# local guide file for Claude
+guide.txt
