@@ -19,7 +19,7 @@ load_dotenv()
 
 
 def load_data(file_path):
-    """Load patient data from text file."""
+    """Load lecture data from text file."""
     assert os.path.exists(file_path), f"File not found: {file_path}"
 
     with open(file_path, "r", encoding="utf-8") as f:
@@ -31,21 +31,21 @@ def load_data(file_path):
 
 def get_chunks(data_txt, save_to=None, chunk_size=512, overlap=128):
     """Split data into chunks and optionally save to file."""
-    # Check if data contains patient records (with "PATIENT ID:")
+    # Check if data contains lectures, which must start with "Lecture"
     if "Lecture" in data_txt:
-        # Split by patient records (each patient starts with "Lecture:")
-        patient_records = data_txt.split("Lecture")
+        lectures = data_txt.split("Lecture")
 
         chunks = []
-        for record in patient_records:
+        for record in lectures:
             if record.strip():  # Skip empty records
                 # Add back the "Lecture:" prefix and clean up
                 full_record = "Lecture" + record.strip()
                 chunks.append(full_record)
 
-        print(f"Created {len(chunks)} chunks from patient data")
+        print(f"Created {len(chunks)} chunks from lecture data")
     else:
-        # No patient IDs found, create fixed-size chunks with overlap
+        # No structured lecture IDs found, 
+        # create fixed-size chunks with overlap
         chunks = []
         start = 0
 
