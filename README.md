@@ -36,7 +36,8 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
    ```bash
    pip install -r requirements.txt
    ```
-3. **Run the web application:**
+3. Get an API Key from Together AI (www.together.ai) and store it under .env as TOGETHER_API_KEY.
+4. **Run the web application:**
    ```bash
    python app.py
    ```
