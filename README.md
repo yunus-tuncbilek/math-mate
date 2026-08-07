@@ -14,7 +14,9 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
 
 ## Features
 
-- **Homework Upload & Management:** Educators can easily upload, organize, and manage homework assignments.
+- **Accounts & Roles:** Teachers and students sign up for their own accounts, with role-aware dashboards and access control throughout the app.
+- **Classes & Enrollment:** Teachers create classes that come with a unique invite code. Students join a class with that code, and teachers can also invite an existing student directly by email. Assignments and resources are organized per class.
+- **Homework Upload & Management:** Educators can easily upload, organize, and manage homework assignments within their classes.
 - **Student Homework Portal:** Students can view and access assigned homework through a user-friendly dashboard.
 - **AI Tutor Assistance:** An integrated AI tutor helps students with their homework, offering explanations, hints, and step-by-step guidance.
 - **Teacher Review Tools:** Teachers can review student interactions with the AI tutor, gaining insights into student progress and common challenges.
@@ -24,6 +26,7 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
 ## Technology
 
 - **Backend:** Python with Flask framework
+- **Database:** SQLAlchemy models with Flask-Migrate (Alembic) migrations
 
 ## Getting Started
 
@@ -36,7 +39,12 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
    ```bash
    pip install -r requirements.txt
    ```
-3. **Run the web application:**
+3. **Set up the database:**
+   ```bash
+   flask db upgrade   # create the tables from the migrations
+   flask seed         # (optional) populate with sample data
+   ```
+4. **Run the web application:**
    ```bash
    python app.py
    ```

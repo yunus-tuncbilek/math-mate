@@ -9,10 +9,10 @@
     <div class="container">
         <h2>User Profile</h2>
         <form method="post">
-            <label>Username:</label>
-            <input type="text" value="{{ username }}" disabled><br>
+            <label>Name:</label>
+            <input type="text" value="{{ user.name }}" disabled><br>
             <label>Email:</label>
-            <input type="text" name="email" value="{{ user.email if user.email else '' }}"><br>
+            <input type="email" name="email" value="{{ user.email }}"><br>
             <label>Role:</label>
             <input type="text" value="{{ user.role }}" disabled><br>
             <label>New Password:</label>

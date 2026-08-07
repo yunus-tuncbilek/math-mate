@@ -12,10 +12,24 @@ warnings.filterwarnings("ignore")
 import json
 import pickle
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 load_dotenv()
+
+
+# The SentenceTransformer model is loaded lazily and cached, so that (a) merely
+# importing this module doesn't drag in torch (keeping `flask run` fast) and
+# (b) the model weights are loaded only once instead of on every RAG call.
+_model_cache = {}
+
+
+def _get_model(model_name="all-MiniLM-L6-v2"):
+    """Return a cached SentenceTransformer, loading it on first use."""
+    if model_name not in _model_cache:
+        from sentence_transformers import SentenceTransformer
+
+        _model_cache[model_name] = SentenceTransformer(model_name)
+    return _model_cache[model_name]
 
 
 def load_data(file_path):
@@ -85,8 +99,8 @@ def get_embeddings(chunks, save_to=None, model_name="all-MiniLM-L6-v2"):
         print("No chunks provided for embedding generation")
         return None
 
-    # Initialize sentence transformer model
-    model = SentenceTransformer(model_name)
+    # Initialize sentence transformer model (cached across calls)
+    model = _get_model(model_name)
 
     # Generate embeddings
     embeddings = model.encode(chunks)
@@ -109,8 +123,8 @@ def retrieve_closest_chunk(
     if not chunks or embeddings is None:
         return None, None, None, None, None
 
-    # Initialize model for query encoding
-    model = SentenceTransformer(model_name)
+    # Initialize model for query encoding (cached across calls)
+    model = _get_model(model_name)
 
     # Generate embedding for the query
     query_embedding = model.encode([query])
