@@ -42,7 +42,7 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
 3. **Set up the database:**
    ```bash
    flask db upgrade   # create the tables from the migrations
-   flask seed         # (optional) populate with sample data
+   python seed.py         # (optional) populate with sample data
    ```
 4. Get an API Key from Together AI (www.together.ai) and store it under .env as TOGETHER_API_KEY.
 5. **Run the web application:**

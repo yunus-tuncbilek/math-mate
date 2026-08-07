@@ -11,4 +11,4 @@ sentence-transformers>=2.0.0
 together>=0.2.0
 numpy>=1.21.0
 # Uncomment when pointing DATABASE_URL at Postgres/Supabase instead of SQLite:
-# psycopg2-binary>=2.9
+psycopg2-binary>=2.9
