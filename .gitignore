@@ -8,13 +8,21 @@
 *.log
 
 # Environment files
+.env
 *.env
 *.env.*
+# ...but DO track the documented template:
+!.env.example
 venv
+.venv/
 
 # Python cache (if using Python)
 __pycache__/
 *.pyc
+
+# SQLite database (created at runtime / seeded)
+data/*.db
+data/*.sqlite3
 
 # Other system files
 Thumbs.db
@@ -25,3 +33,9 @@ static/uploads/*
 
 rag/data/chunks.json
 rag/data/dataembeddings.pkl
+
+# local guide file for Claude
+guide.txt
+
+# Claude Code local settings
+.claude/
