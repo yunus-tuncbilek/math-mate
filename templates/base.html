@@ -18,7 +18,13 @@
                 </span>
             </a>
             {% if current_user.is_authenticated %}
-            <nav class="site-nav">
+            <button class="nav-toggle" type="button" aria-label="Toggle navigation"
+                    aria-controls="site-nav" aria-expanded="false">
+                <span class="nav-toggle__bar"></span>
+                <span class="nav-toggle__bar"></span>
+                <span class="nav-toggle__bar"></span>
+            </button>
+            <nav class="site-nav" id="site-nav">
                 <span class="site-nav__user">{{ current_user.name }} · {{ current_user.role }}</span>
                 <a href="{{ url_for('profile') }}">Profile</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
@@ -49,6 +55,17 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        (function () {
+            var toggle = document.querySelector('.nav-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var open = document.body.classList.toggle('nav-open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        })();
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>
