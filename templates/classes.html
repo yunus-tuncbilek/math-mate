@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Classes · Math-Mate{% endblock %}
+
+{% block content %}
+<div class="section">
+    <h2>Your Classes</h2>
+
+    {% if current_user.is_teacher %}
+        {% if classes %}
+        <ul>
+            {% for c in classes %}
+            <li>
+                <strong>{{ c.name }}</strong> — invite code:
+                <code>{{ c.invite_code }}</code>
+                ({{ c.students|length }} student{{ '' if c.students|length == 1 else 's' }})
+                <form action="{{ url_for('invite_existing_student', class_id=c.id) }}"
+                      method="post" class="inline-add">
+                    <input type="email" name="email" placeholder="add student email">
+                    <button type="submit">Add</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>You have no classes yet.</p>
+        {% endif %}
+        <a class="btn" href="{{ url_for('create_class') }}">Create a class</a>
+    {% else %}
+        {% if classes %}
+        <ul>{% for c in classes %}<li>{{ c.name }}</li>{% endfor %}</ul>
+        {% else %}
+        <p>You are not enrolled in any classes yet.</p>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

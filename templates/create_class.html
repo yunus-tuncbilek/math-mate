@@ -1,41 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Create a Class - Math-Mate</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <header><h1>Math-Mate</h1></header>
-    <div class="container">
-        <h2>Create a Class</h2>
+{% extends "base.html" %}
+{% block title %}Create a Class · Math-Mate{% endblock %}
 
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="msg">{% for m in messages %}{{ m }}<br>{% endfor %}</div>
-            {% endif %}
-        {% endwith %}
+{% block content %}
+<div class="section">
+    <h2>Create a Class</h2>
 
-        {% if created %}
-            <div class="section">
-                <p><strong>{{ created.name }}</strong> is ready.</p>
-                <p>Share this invite code with your students:
-                   <code style="font-size:1.2rem;">{{ created.invite_code }}</code></p>
-                <p>Or send them this signup link:</p>
-                <input type="text" readonly style="width:100%;"
-                       value="{{ url_for('signup', code=created.invite_code, _external=True) }}">
-                <p style="margin-top:1rem;">
-                    <a class="btn" href="{{ url_for('index') }}">Go to dashboard</a>
-                    <a class="btn" href="{{ url_for('create_class') }}">Create another class</a>
-                </p>
-            </div>
-        {% else %}
-            <form method="post">
-                <input type="text" name="name" placeholder="Class name (e.g. Calculus II)" required><br>
-                <button type="submit">Create class</button>
-            </form>
-            <div class="link"><a href="{{ url_for('index') }}">Skip for now</a></div>
-        {% endif %}
-    </div>
-</body>
-</html>
+    {% if created %}
+        <p><strong>{{ created.name }}</strong> is ready.</p>
+        <p>Share this invite code with your students:
+           <code style="font-size:1.2rem;">{{ created.invite_code }}</code></p>
+        <p>Or send them this signup link:</p>
+        <input type="text" readonly
+               value="{{ url_for('signup', code=created.invite_code, _external=True) }}">
+        <p style="margin-top:1rem;">
+            <a class="btn" href="{{ url_for('classes_page') }}">Go to classes</a>
+            <a class="btn btn-secondary" href="{{ url_for('create_class') }}">Create another class</a>
+        </p>
+    {% else %}
+        <form method="post">
+            <input type="text" name="name" placeholder="Class name (e.g. Calculus II)" required>
+            <button type="submit">Create class</button>
+        </form>
+        <div class="link"><a href="{{ url_for('classes_page') }}">Skip for now</a></div>
+    {% endif %}
+</div>
+{% endblock %}

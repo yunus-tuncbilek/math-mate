@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Ask AI · Math-Mate{% endblock %}
+
+{% block content %}
+<div class="section">
+    <h2>Ask the AI Assistant</h2>
+    <p>Ask a question about your coursework. Choose an assignment for focused help,
+        or leave it as a general question.</p>
+    <form action="{{ url_for('ask') }}" method="post" class="ask-form input-row">
+        <select name="assignment_id">
+            <option value="">General question</option>
+            {% for a in assignments %}
+            <option value="{{ a.id }}">{{ a.title }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="question" class="ask-input" placeholder="Ask your question..." required>
+        <button type="submit" class="ask-button">Ask</button>
+    </form>
+</div>
+{% endblock %}

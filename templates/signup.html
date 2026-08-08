@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Sign Up - Math-Mate</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script>
     function toggleInviteCode() {
@@ -14,32 +15,38 @@
     </script>
 </head>
 <body>
-    <div class="container">
+    <div class="container auth-card">
+        <div class="auth-brand">
+            <img class="auth-logo" src="{{ url_for('static', filename='logo.png') }}" alt="Math-Mate logo">
+            Math-Mate
+        </div>
         <h2>Sign Up</h2>
         <form method="post">
-            <label style="display:block;margin-bottom:0.5rem;">
-                <input type="radio" name="role" value="student"
-                       {% if not prefill_code %}{% endif %}
-                       {% if request.form.get('role') != 'teacher' %}checked{% endif %}
-                       onchange="toggleInviteCode()"> Student
-            </label>
-            <label style="display:block;margin-bottom:0.75rem;">
-                <input type="radio" name="role" value="teacher"
-                       {% if request.form.get('role') == 'teacher' %}checked{% endif %}
-                       onchange="toggleInviteCode()"> Teacher
-            </label>
+            <fieldset class="role-choice">
+                <legend>I am a</legend>
+                <label>
+                    <input type="radio" name="role" value="student"
+                           {% if request.form.get('role') != 'teacher' %}checked{% endif %}
+                           onchange="toggleInviteCode()"> Student
+                </label>
+                <label>
+                    <input type="radio" name="role" value="teacher"
+                           {% if request.form.get('role') == 'teacher' %}checked{% endif %}
+                           onchange="toggleInviteCode()"> Teacher
+                </label>
+            </fieldset>
 
-            <input type="text" name="name" placeholder="Full name" required><br>
-            <input type="email" name="email" placeholder="Email" required><br>
-            <input type="password" name="password" placeholder="Password" required><br>
+            <input type="text" name="name" placeholder="Full name" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
 
             <div id="invite-code-field">
                 <input type="text" name="invite_code" placeholder="Class invite code"
-                       value="{{ prefill_code }}"><br>
+                       value="{{ prefill_code }}">
                 <small>Ask your teacher for your class invite code.</small>
             </div>
 
-            <button type="submit">Sign Up</button>
+            <button type="submit" class="btn-block">Sign Up</button>
         </form>
         <div class="msg">{{ msg }}</div>
         <div class="link">

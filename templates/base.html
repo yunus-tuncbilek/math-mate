@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Math-Mate{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a class="site-brand" href="{{ url_for('index') }}">
+                <img class="site-logo" src="{{ url_for('static', filename='logo.png') }}" alt="Math-Mate logo">
+                <span class="site-brand__text">Math-Mate
+                    <span class="site-brand__sub">AI Teaching Assistant</span>
+                </span>
+            </a>
+            {% if current_user.is_authenticated %}
+            <nav class="site-nav">
+                <span class="site-nav__user">{{ current_user.name }} · {{ current_user.role }}</span>
+                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if current_user.is_authenticated %}
+    <nav class="section-nav">
+        <div class="section-nav__inner">
+            <a href="{{ url_for('classes_page') }}" class="{{ 'is-active' if active == 'classes' }}">Classes</a>
+            <a href="{{ url_for('resources_page') }}" class="{{ 'is-active' if active == 'resources' }}">Resources</a>
+            <a href="{{ url_for('assignments_page') }}" class="{{ 'is-active' if active == 'assignments' }}">Assignments</a>
+            {% if current_user.is_student %}
+            <a href="{{ url_for('ask_page') }}" class="{{ 'is-active' if active == 'ask' }}">Ask AI</a>
+            {% endif %}
+            <a href="{{ url_for('history_page') }}" class="{{ 'is-active' if active == 'history' }}">Chat History</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="msg">{% for m in messages %}{{ m }}<br>{% endfor %}</div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

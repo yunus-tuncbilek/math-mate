@@ -203,35 +203,81 @@ def invite_existing_student(class_id):
         flash(f"{student.name} added to {klass.name}.")
     else:
         flash(f"{student.name} is already in {klass.name}.")
-    return redirect(url_for("index"))
+    return redirect(url_for("classes_page"))
 
 
 # --------------------------------------------------------------------------- #
-# Landing page (role-aware)
+# Dashboard pages (role-aware). Each nav section is its own page.
 # --------------------------------------------------------------------------- #
+def _classes_for(user):
+    """Classes visible to a user: taught (teacher) or enrolled (student)."""
+    if user.is_teacher:
+        return user.classes_taught
+    return [e.klass for e in user.enrollments]
+
+
 @app.route("/", methods=["GET"])
 @login_required
 def index():
-    assignments = app_utils.assignments_for_user(current_user)
-    resources = app_utils.resources_for_user(current_user)
-    sessions = app_utils.chat_sessions_visible_to(current_user)
+    # The dashboard is split into sections; land on Classes by default.
+    return redirect(url_for("classes_page"))
 
+
+@app.route("/classes", methods=["GET"])
+@login_required
+def classes_page():
+    return render_template(
+        "classes.html", active="classes", classes=_classes_for(current_user)
+    )
+
+
+@app.route("/resources", methods=["GET"])
+@login_required
+def resources_page():
+    return render_template(
+        "resources.html",
+        active="resources",
+        resources=app_utils.resources_for_user(current_user),
+        classes=_classes_for(current_user),
+    )
+
+
+@app.route("/assignments", methods=["GET"])
+@login_required
+def assignments_page():
+    assignments = app_utils.assignments_for_user(current_user)
     if current_user.is_teacher:
         # Teacher payload MAY include the private guidance_note.
         assignment_data = [a.to_dict(include_guidance=True) for a in assignments]
-        classes = current_user.classes_taught
     else:
         # Student payload NEVER includes guidance_note (stripped at the source).
         assignment_data = [a.public_dict() for a in assignments]
-        classes = [e.klass for e in current_user.enrollments]
-
     return render_template(
-        "index.html",
-        role=current_user.role,
-        username=current_user.name,
-        classes=classes,
+        "assignments.html",
+        active="assignments",
         assignments=assignment_data,
-        resources=resources,
+        classes=_classes_for(current_user),
+    )
+
+
+@app.route("/ask-ai", methods=["GET"])
+@student_required
+def ask_page():
+    assignments = app_utils.assignments_for_user(current_user)
+    return render_template(
+        "ask.html",
+        active="ask",
+        assignments=[a.public_dict() for a in assignments],
+    )
+
+
+@app.route("/history", methods=["GET"])
+@login_required
+def history_page():
+    sessions = app_utils.chat_sessions_visible_to(current_user)
+    return render_template(
+        "history.html",
+        active="history",
         interactions=[_serialize_session(s) for s in sessions],
     )
 
@@ -265,7 +311,7 @@ def create_assignment():
     )
     db.session.add(assignment)
     db.session.commit()
-    return redirect(url_for("index"))
+    return redirect(url_for("assignments_page"))
 
 
 @app.route("/assignments/<int:assignment_id>/delete", methods=["POST"])
@@ -274,9 +320,14 @@ def delete_assignment(assignment_id):
     assignment = app_utils.get_assignment_for_teacher(assignment_id, current_user)
     if not assignment:
         abort(403)
+    # Preserve chat history: detach any sessions that referenced this assignment
+    # (assignment_id is nullable) so the FK constraint doesn't block the delete.
+    ChatSession.query.filter_by(assignment_id=assignment.id).update(
+        {"assignment_id": None}
+    )
     db.session.delete(assignment)
     db.session.commit()
-    return redirect(url_for("index"))
+    return redirect(url_for("assignments_page"))
 
 
 # --------------------------------------------------------------------------- #
@@ -294,7 +345,7 @@ def upload_resource():
     title = request.form.get("title", "").strip()
     if not file or file.filename == "" or not allowed_file(file.filename):
         flash("Please choose a PDF file.")
-        return redirect(url_for("index"))
+        return redirect(url_for("resources_page"))
 
     filename = secure_filename(f"{int(time.time())}_{file.filename}")
     dest_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -307,7 +358,7 @@ def upload_resource():
     )
     db.session.add(resource)
     db.session.commit()
-    return redirect(url_for("index"))
+    return redirect(url_for("resources_page"))
 
 
 # --------------------------------------------------------------------------- #
@@ -326,7 +377,7 @@ def _homework_context_for_student():
 def ask():
     question = request.form.get("question", "").strip()
     if not question:
-        return redirect(url_for("index"))
+        return redirect(url_for("ask_page"))
 
     assignment_id = request.form.get("assignment_id", type=int)
     guidance = ""

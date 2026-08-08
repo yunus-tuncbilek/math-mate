@@ -3,21 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Profile - Math-Mate</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="container auth-card">
+        <div class="auth-brand">
+            <img class="auth-logo" src="{{ url_for('static', filename='logo.png') }}" alt="Math-Mate logo">
+            Math-Mate
+        </div>
         <h2>User Profile</h2>
         <form method="post">
-            <label>Name:</label>
-            <input type="text" value="{{ user.name }}" disabled><br>
-            <label>Email:</label>
-            <input type="email" name="email" value="{{ user.email }}"><br>
-            <label>Role:</label>
-            <input type="text" value="{{ user.role }}" disabled><br>
-            <label>New Password:</label>
-            <input type="password" name="password" placeholder="Leave blank to keep current"><br>
-            <button type="submit">Update Profile</button>
+            <label>Name</label>
+            <input type="text" value="{{ user.name }}" disabled>
+            <label>Email</label>
+            <input type="email" name="email" value="{{ user.email }}">
+            <label>Role</label>
+            <input type="text" value="{{ user.role }}" disabled>
+            <label>New Password</label>
+            <input type="password" name="password" placeholder="Leave blank to keep current">
+            <button type="submit" class="btn-block">Update Profile</button>
         </form>
         <div class="msg">{{ msg }}</div>
         <div class="link">

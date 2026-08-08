@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Assignments · Math-Mate{% endblock %}
+{% block head %}{% include "_mathjax.html" %}{% endblock %}
+
+{% block content %}
+<div class="section">
+    <h2>Assignments</h2>
+
+    {% if current_user.is_teacher %}
+    <form action="{{ url_for('create_assignment') }}" method="post" class="stacked-form">
+        <select name="class_id" required>
+            <option value="">Select class</option>
+            {% for c in classes %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="title" placeholder="Assignment title" required>
+        <input type="date" name="due_date">
+        <textarea name="description" rows="2" placeholder="Assignment text / description..." required></textarea>
+        <textarea name="guidance_note" rows="2"
+                  placeholder="Private guidance for the AI (never shown to students)"></textarea>
+        <button type="submit">Add assignment</button>
+    </form>
+    {% endif %}
+
+    {% if assignments %}
+    <ul>
+        {% for a in assignments %}
+        <li>
+            <strong>{{ a.title }}</strong> — <em>{{ a.class_name }}</em><br>
+            <small>{% if a.due_date %}Due {{ a.due_date }} · {% endif %}Created {{ a.created_at }}</small>
+            <div class="latex-content">
+                <div class="latex-rendered">{{ a.description | safe }}</div>
+            </div>
+            {% if current_user.is_teacher and a.guidance_note %}
+            <div class="note-callout">
+                <strong>Private AI guidance (teachers only):</strong> {{ a.guidance_note }}
+            </div>
+            {% endif %}
+            {% if current_user.is_teacher %}
+            <form action="{{ url_for('delete_assignment', assignment_id=a.id) }}"
+                  method="post" style="display:inline;margin-top:0.5rem;">
+                <button type="submit" class="btn-danger">Delete</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No assignments yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

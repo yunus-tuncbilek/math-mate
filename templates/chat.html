@@ -1,93 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Math-Mate Chat</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script>
-    window.MathJax = {
-      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
-      options: { skipHtmlTags: ['script','style','textarea','pre'] }
-    };
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-</head>
-<body>
-    <header>
-        <h1>Math-Mate Chat</h1>
-    </header>
-    <div class="container">
-        {% with flashes = get_flashed_messages() %}
-            {% if flashes %}
-                <div class="msg">{% for m in flashes %}{{ m }}<br>{% endfor %}</div>
-            {% endif %}
-        {% endwith %}
-        <div class="section">
-            <h2>Conversation with AI</h2>
-            <div class="interaction-list">
-                <ul>
-                    {% for msg in messages %}
-                    <li>
-                        {% if msg.role == 'user' %}
-                            <strong>You:</strong> {{ msg.text }}
-                        {% else %}
-                            <strong>AI:</strong> {{ msg.text }}
-                            {% if msg.source %}
-                                <small class="source">Source: {{ msg.source.split()[:10] | join(' ') }}...</small>
-                            {% endif %}
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <form method="post">
-                <input type="text" name="message" placeholder="Type your message..." autofocus>
-                <button type="submit">Send</button>
-            </form>
-        </div>
+{% extends "base.html" %}
+{% block title %}Chat · Math-Mate{% endblock %}
+{% block head %}{% include "_mathjax.html" %}{% endblock %}
 
-        {# ---------------- Student feedback (powers RLHF-lite) ---------------- #}
-        {% if can_rate %}
-        <div class="section feedback-box">
-            <h2>How was this help?</h2>
-            {% if feedback %}
-                <p class="feedback-current">
-                    You rated this
-                    {% if feedback.helpful %}👍 Helpful{% else %}👎 Not helpful{% endif %}.
-                    {% if feedback.comment %}<br><em>“{{ feedback.comment }}”</em>{% endif %}
-                </p>
-                <p><small>You can update your feedback below.</small></p>
-            {% else %}
-                <p>Your feedback trains Math-Mate to give better answers next time.</p>
-            {% endif %}
-            <form method="post" action="{{ url_for('submit_feedback') }}" class="feedback-form">
-                <div class="feedback-rating">
-                    <button type="submit" name="rating" value="5"
-                            class="rate-btn rate-up{% if feedback and feedback.helpful %} selected{% endif %}">
-                        👍 Helpful
-                    </button>
-                    <button type="submit" name="rating" value="1"
-                            class="rate-btn rate-down{% if feedback and not feedback.helpful %} selected{% endif %}">
-                        👎 Not helpful
-                    </button>
-                </div>
-                <textarea name="comment" class="feedback-comment" rows="2"
-                          placeholder="What worked, or what could be better? (optional)">{{ feedback.comment if feedback and feedback.comment else '' }}</textarea>
-            </form>
-        </div>
-        {% endif %}
-        <div class="link">
-            <a href="{{ url_for('index') }}">Back to Dashboard</a>
-        </div>
+{% block content %}
+<div class="section">
+    <h2>Conversation with AI</h2>
+    <div class="interaction-list">
+        <ul>
+            {% for msg in messages %}
+            <li>
+                {% if msg.role == 'user' %}
+                    <strong>You:</strong> {{ msg.text }}
+                {% else %}
+                    <strong>AI:</strong> {{ msg.text }}
+                    {% if msg.source %}
+                        <small class="source">Source: {{ msg.source.split()[:10] | join(' ') }}...</small>
+                    {% endif %}
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
     </div>
+    <form method="post" class="input-row">
+        <input type="text" name="message" placeholder="Type your message..." autofocus>
+        <button type="submit">Send</button>
+    </form>
+</div>
 
-    <!-- re-typeset in case content inserted after MathJax begin -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.MathJax && MathJax.typesetPromise) {
-        MathJax.typesetPromise().catch(function (err) { console.error(err); });
-      }
-    });
-    </script>
-</body>
-</html>
+{# ---------------- Student feedback (powers RLHF-lite) ---------------- #}
+{% if can_rate %}
+<div class="section feedback-box">
+    <h2>How was this help?</h2>
+    {% if feedback %}
+        <p class="feedback-current">
+            You rated this
+            {% if feedback.helpful %}👍 Helpful{% else %}👎 Not helpful{% endif %}.
+            {% if feedback.comment %}<br><em>“{{ feedback.comment }}”</em>{% endif %}
+        </p>
+        <p><small>You can update your feedback below.</small></p>
+    {% else %}
+        <p>Your feedback trains Math-Mate to give better answers next time.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('submit_feedback') }}" class="feedback-form">
+        <div class="feedback-rating">
+            <button type="submit" name="rating" value="5"
+                    class="rate-btn rate-up{% if feedback and feedback.helpful %} selected{% endif %}">
+                👍 Helpful
+            </button>
+            <button type="submit" name="rating" value="1"
+                    class="rate-btn rate-down{% if feedback and not feedback.helpful %} selected{% endif %}">
+                👎 Not helpful
+            </button>
+        </div>
+        <textarea name="comment" class="feedback-comment" rows="2"
+                  placeholder="What worked, or what could be better? (optional)">{{ feedback.comment if feedback and feedback.comment else '' }}</textarea>
+    </form>
+</div>
+{% endif %}
+
+<div class="link">
+    <a href="{{ url_for('ask_page') }}">Ask another question</a> ·
+    <a href="{{ url_for('history_page') }}">Chat History</a>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Chat History · Math-Mate{% endblock %}
+{% block head %}{% include "_mathjax.html" %}{% endblock %}
+
+{% block content %}
+<div class="section">
+    <h2>Chat History</h2>
+    <div class="interaction-list">
+        {% if interactions %}
+            {% for it in interactions %}
+            <div class="interaction-card">
+                <div class="interaction-card__head">
+                    <strong>{{ it.student }}</strong>
+                    <small>{{ it.date }}</small>
+                </div>
+                <ul class="msg-thread">
+                    {% for msg in it.messages %}
+                    <li class="msg-bubble msg-bubble--{{ 'ai' if msg.role == 'assistant' else 'user' }}">
+                        <span class="msg-bubble__role">{% if msg.role == 'user' %}You{% else %}AI{% endif %}</span>
+                        <span class="msg-bubble__text">{{ msg.text }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if it.feedback %}
+                <div class="feedback-tag {{ 'feedback-up' if it.feedback.helpful else 'feedback-down' }}">
+                    Student feedback:
+                    {% if it.feedback.helpful %}👍 Helpful{% else %}👎 Not helpful{% endif %}
+                    {% if it.feedback.comment %}— “{{ it.feedback.comment }}”{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No interactions yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
