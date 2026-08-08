@@ -185,6 +185,13 @@
                                 {% endfor %}
                             </ul>
                         </div>
+                        {% if it.feedback %}
+                        <div class="feedback-tag {{ 'feedback-up' if it.feedback.helpful else 'feedback-down' }}">
+                            Student feedback:
+                            {% if it.feedback.helpful %}👍 Helpful{% else %}👎 Not helpful{% endif %}
+                            {% if it.feedback.comment %}— “{{ it.feedback.comment }}”{% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 {% else %}

@@ -214,3 +214,75 @@ button:hover {
     margin-top: 0.25rem;
     display: block;
 }
+
+/* ---------------- Student feedback / RLHF-lite ---------------- */
+.feedback-box {
+    margin-top: 1rem;
+}
+
+.feedback-current {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.feedback-form {
+    margin-top: 0.5rem;
+}
+
+.feedback-rating {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.rate-btn {
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: #f7f7f7;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.rate-btn:hover {
+    opacity: 0.9;
+}
+
+.rate-btn.selected.rate-up {
+    background: #e8f5e9;
+    border-color: #43a047;
+}
+
+.rate-btn.selected.rate-down {
+    background: #fdecea;
+    border-color: #e53935;
+}
+
+.feedback-comment {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    box-sizing: border-box;
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* teacher-facing feedback badge under an interaction */
+.feedback-tag {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.feedback-tag.feedback-up {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.feedback-tag.feedback-down {
+    background: #fdecea;
+    color: #c62828;
+}

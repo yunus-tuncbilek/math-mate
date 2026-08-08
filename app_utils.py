@@ -20,6 +20,7 @@ from models import (
     Resource,
     ChatSession,
     ChatMessage,
+    Feedback,
 )
 
 
@@ -205,3 +206,28 @@ def chat_sessions_visible_to(user):
         .order_by(ChatSession.created_at.desc())
         .all()
     )
+
+
+# --------------------------------------------------------------------------- #
+# Feedback (student ratings on AI help — powers the RLHF-lite loop)
+# --------------------------------------------------------------------------- #
+def get_feedback_for_session(chat_session):
+    """Return the (single) feedback row for a session, or None."""
+    return Feedback.query.filter_by(chat_session_id=chat_session.id).first()
+
+
+def save_feedback(chat_session, rating, comment=None):
+    """Create or update the student's feedback for a chat session.
+
+    One feedback row per session: submitting again updates the existing row
+    rather than piling up duplicates.
+    """
+    comment = (comment or "").strip() or None
+    entry = get_feedback_for_session(chat_session)
+    if entry is None:
+        entry = Feedback(chat_session_id=chat_session.id)
+        db.session.add(entry)
+    entry.rating = rating
+    entry.comment = comment
+    db.session.commit()
+    return entry

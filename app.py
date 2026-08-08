@@ -26,6 +26,7 @@ from config import Config
 from extensions import db, migrate, login_manager
 from models import User, Class, Assignment, Resource, ChatSession, ChatMessage
 import app_utils
+import rlhf
 from respond import get_ai_response, closest_chunk_from_rag
 
 app = Flask(__name__)
@@ -78,6 +79,7 @@ def student_required(f):
 
 def _serialize_session(chat_session):
     """Template-safe view of a chat session (never touches guidance_note)."""
+    fb = app_utils.get_feedback_for_session(chat_session)
     return {
         "id": chat_session.id,
         "student": chat_session.student.name if chat_session.student else "unknown",
@@ -85,6 +87,18 @@ def _serialize_session(chat_session):
         "messages": [
             {"role": m.role, "text": m.content} for m in chat_session.messages
         ],
+        "feedback": _serialize_feedback(fb),
+    }
+
+
+def _serialize_feedback(fb):
+    """Template-safe view of a feedback row, or None."""
+    if fb is None or fb.rating is None:
+        return None
+    return {
+        "rating": fb.rating,
+        "helpful": fb.rating > rlhf.NEGATIVE_MAX,
+        "comment": fb.comment,
     }
 
 
@@ -327,8 +341,14 @@ def ask():
 
     closest_lecture = closest_chunk_from_rag(question)
     homework_ctx = _homework_context_for_student()
+    error_db = rlhf.build_error_database(question)
     ai_reply = get_ai_response(
-        question, "", homework_ctx, lecture=closest_lecture, guidance=guidance
+        question,
+        "",
+        homework_ctx,
+        lecture=closest_lecture,
+        guidance=guidance,
+        error_db=error_db,
     )
 
     chat_session = app_utils.create_chat_session(current_user, assignment_id)
@@ -360,12 +380,14 @@ def chat():
                 else ""
             ) or ""
             closest_lecture = closest_chunk_from_rag(user_message)
+            error_db = rlhf.build_error_database(user_message)
             ai_reply = get_ai_response(
                 user_message,
                 history,
                 _homework_context_for_student(),
                 lecture=closest_lecture,
                 guidance=guidance,
+                error_db=error_db,
             )
             app_utils.add_message(chat_session, "user", user_message)
             app_utils.add_message(chat_session, "assistant", ai_reply)
@@ -375,7 +397,44 @@ def chat():
         if chat_session
         else []
     )
-    return render_template("chat.html", messages=messages)
+    feedback = (
+        _serialize_feedback(app_utils.get_feedback_for_session(chat_session))
+        if chat_session
+        else None
+    )
+    # Only prompt for feedback once the AI has actually replied.
+    can_rate = any(m["role"] == "assistant" for m in messages)
+    return render_template(
+        "chat.html", messages=messages, feedback=feedback, can_rate=can_rate
+    )
+
+
+@app.route("/feedback", methods=["POST"])
+@student_required
+def submit_feedback():
+    """Record a student's rating/comment on their current AI chat session.
+
+    Powers the RLHF-lite loop: negative ratings become 'lessons' that steer
+    future replies (see ``rlhf.build_error_database``).
+    """
+    chat_session_id = session.get("chat_session_id")
+    chat_session = ChatSession.query.get(chat_session_id) if chat_session_id else None
+    if not chat_session:
+        return redirect(url_for("index"))
+    # A student may only rate their own session.
+    if chat_session.student_id != current_user.id:
+        abort(403)
+
+    rating = request.form.get("rating", type=int)
+    # Accept only the two supported ratings (1 = not helpful, 5 = helpful).
+    if rating not in (1, 5):
+        flash("Please choose whether the help was useful.")
+        return redirect(url_for("chat"))
+
+    comment = request.form.get("comment", "")
+    app_utils.save_feedback(chat_session, rating, comment)
+    flash("Thanks! Your feedback helps Math-Mate improve.")
+    return redirect(url_for("chat"))
 
 
 # --------------------------------------------------------------------------- #
