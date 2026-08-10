@@ -49,34 +49,3 @@ Math-Mate is a comprehensive web-based platform that serves as both a content ma
    ```bash
    python app.py
    ```
-
-## Planned features / TODO
-
-- Core AI chat
-  - Feedback prompt after each AI session (rating + optional comment)
-- Homework & content uploads
-  - PDF upload for lecture notes / resources
-- Content management
-  - Simple CMS for teachers to organize/view PDFs and lecture notes by class
-  - Search/filter by title, class, teacher, date
-  - Versioning / replace file workflow
-- Student / teacher UX
-  - Session restore: resume unfinished chats
-- Processing & rendering
-  - Strip LaTeX preamble / extract a MathJax-safe file from the homework
-  - Consider the possibility of using markdown for math instead of MathJax 
-  - Extract data from the pdfs to include within the context (using VLMs)
-- Security & data
-  - Sanitize inputs and uploaded files
-  - Rate limiting and abuse protections
-- Ops & quality
-  - Unit tests for routes and file I/O
-  - Logging and error reporting
-  - Backup/export interactions/homeworks (JSON/CSV)
-  - UX polish and accessibility
-- Future enhancements
-  - Teacher review tools / analytics on common student questions
-  - Per-teacher prompt templates
-  - Exportable lesson packs from lecture notes + homework
-- Style
-  - Mitigate inline styling in index.html and use css classes
