@@ -28,19 +28,45 @@ def _get_client():
     return _client
 
 
-def prompt_llm(prompt):
-    # This function allows us to prompt an LLM via the Together API
-    model = "openai/gpt-oss-20b"
-    response = _get_client().chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.choices[0].message.content
+# Model used for every LLM call (blocking and streaming alike).
+MODEL = "openai/gpt-oss-20b"
 
-'''respond function for ai response to HW questions'''
-def get_ai_response(
+def stream_llm(prompt):
+    """Yield the LLM's reply token-by-token via the Together streaming API.
+
+    Mirrors ``prompt_llm`` but streams: each yielded string is an incremental
+    delta of the assistant's message. Empty deltas are skipped so callers only
+    ever receive real text.
+    """
+    stream = _get_client().chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        stream=True
+    )
+
+    # for chunk in stream:
+    #     print(chunk)  # Debug: print each chunk received from the stream
+
+    for chunk in stream:
+        # Some chunks carry no choices (e.g. the trailing usage-only chunk) or a
+        # delta with no content (e.g. the role-announcing first chunk); skip them
+        # so callers only ever receive real text.
+        if not chunk.choices:
+            continue
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta
+
+
+def build_prompt(
     user_message, chat_history="", homework="", lecture="", guidance="", error_db=""
 ):
+    """Assemble the tutor prompt shared by the blocking and streaming paths.
+
+    Keeping this in one place guarantees the streamed reply is generated from the
+    exact same instructions (and the same private-``guidance`` / ``error_db``
+    handling) as the non-streaming fallback.
+    """
     # `guidance` is the teacher's PRIVATE instruction to the AI. It steers the
     # tutor's behaviour but must never be revealed to the student, so it is
     # injected as a private directive and explicitly marked non-disclosable.
@@ -61,7 +87,8 @@ def get_ai_response(
     You are a helpful AI Chatbot that loves to help students with their homework.
 
     Instructions:
-    - Make your answers at most 30 words
+    - Make your answers at most 50 words. 
+    - If you're explaining complex concepts, break them down into simple steps.
     - Only give the response to the user's message
     - Give the students hints or suggestions
     - Do not provide direct answers to homework questions
@@ -92,7 +119,18 @@ def get_ai_response(
     {user_message}
     """
 
-    return prompt_llm(prompt)
+    return prompt
+
+
+def stream_ai_response(
+    user_message, chat_history="", homework="", lecture="", guidance="", error_db=""
+):
+    """Streaming counterpart of ``get_ai_response`` — yields reply deltas."""
+    prompt = build_prompt(
+        user_message, chat_history, homework, lecture, guidance, error_db
+    )
+    return stream_llm(prompt)
+
 
 def closest_chunk_from_rag(question):
 

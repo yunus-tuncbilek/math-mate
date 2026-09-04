@@ -39,3 +39,6 @@ guide.txt
 
 # Claude Code local settings
 .claude/
+
+# Local ideas file
+IDEAS.md

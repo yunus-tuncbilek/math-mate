@@ -1,0 +1,51 @@
+name: Tests
+
+# Run the suite on every push to main and on PRs that target it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # The app requires a signing key at import time; DATABASE_URL is
+      # overridden by the test fixtures, but we set a harmless default too.
+      secret_key: ci-test-secret-key
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -q
+
+  # Push to the Hugging Face Space only after tests pass, and only on main.
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the push to the Space isn't rejected as shallow.
+          fetch-depth: 0
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git push --force \
+            "https://ytunc:${HF_TOKEN}@huggingface.co/spaces/ytunc/math-mate" \
+            HEAD:main
