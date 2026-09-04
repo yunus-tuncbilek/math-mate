@@ -2,8 +2,6 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-from rag import rag_utils
-
 import os
 
 from dotenv import load_dotenv
@@ -88,7 +86,7 @@ def build_prompt(
 
     Instructions:
     - Make your answers at most 50 words. 
-    - If you're explaining complex concepts, break them down into simple steps.
+    - Do not use any methods or techniques that are not taught in the lecture notes.
     - Only give the response to the user's message
     - Give the students hints or suggestions
     - Do not provide direct answers to homework questions
@@ -133,28 +131,3 @@ def stream_ai_response(
     print(prompt)
 
     return stream_llm(prompt)
-
-
-def closest_chunk_from_rag(question):
-
-    CHUNKS_FILE = "rag/data/chunks.json"
-    EMBEDDINGS_FILE = "rag/data/dataembeddings.pkl"
-    
-    #check if chunks and embeddings file exists
-    if os.path.exists(CHUNKS_FILE) and os.path.exists(EMBEDDINGS_FILE):
-        chunks = rag_utils.load_chunks(CHUNKS_FILE)
-        embeddings = rag_utils.load_embeddings(EMBEDDINGS_FILE)
-    else:
-        data_file = "rag/data/lectures.txt"
-        data_txt = rag_utils.load_data(data_file)
-
-        chunks = rag_utils.get_chunks(data_txt, save_to=CHUNKS_FILE)
-        embeddings = rag_utils.get_embeddings(chunks, save_to=EMBEDDINGS_FILE)
-
-    # RETRIEVE CLOSEST CHUNK
-    # -----------------------
-    closest_chunk, similarity, chunk_idx, query_embedding, all_similarities = (
-        rag_utils.retrieve_closest_chunk(question, chunks, embeddings)
-    )
-
-    return closest_chunk

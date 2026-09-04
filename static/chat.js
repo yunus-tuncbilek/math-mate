@@ -47,6 +47,19 @@
     return dots;
   }
 
+  // Append a small "read further" pill under the AI bubble, linking to the
+  // resource the RAG answer drew on.
+  function addSourceLink(bubble, source) {
+    if (!source || !source.url) return;
+    var a = document.createElement("a");
+    a.className = "chat-source";
+    a.href = source.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "📖 " + source.title;
+    bubble.parentNode.appendChild(a);
+  }
+
   function typeset(el) {
     if (window.MathJax && MathJax.typesetPromise) {
       MathJax.typesetPromise([el]).catch(function (err) {
@@ -107,6 +120,7 @@
             aiBubble.classList.add("chat-msg__text--error");
           } else if (evt.done) {
             typeset(aiBubble);
+            addSourceLink(aiBubble, evt.source);
             if (feedbackBox) feedbackBox.hidden = false;
             // The conversation now has a server-side session: subsequent sends
             // are follow-ups, so drop the assignment picker.

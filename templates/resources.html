@@ -25,7 +25,7 @@
     {% if resources %}
     <ul>
         {% for r in resources %}
-        <li>
+        <li id="resource-{{ r.id }}">
             <strong>{{ r.title }}</strong>
             {% if r.file_path and r.file_path.endswith('.pdf') %}
                 — <a href="{{ url_for('static', filename=r.file_path) }}" target="_blank" rel="noopener">Open PDF</a>
@@ -36,6 +36,13 @@
                 <summary>Text version</summary>
                 <div class="resource-text" style="white-space: pre-wrap">{{ r.text_content }}</div>
             </details>
+            {% endif %}
+            {% if current_user.is_teacher %}
+            <form action="{{ url_for('delete_resource', resource_id=r.id) }}"
+                  method="post" style="display:inline;margin-top:0.5rem;"
+                  onsubmit="return confirm('Delete “{{ r.title|e }}”? This cannot be undone.');">
+                <button type="submit" class="btn-danger">Delete</button>
+            </form>
             {% endif %}
         </li>
         {% endfor %}

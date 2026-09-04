@@ -31,7 +31,7 @@ from extensions import db, migrate, login_manager
 from models import User, Class, Assignment, Resource, ChatSession
 import app_utils
 import rlhf
-from respond import stream_ai_response, closest_chunk_from_rag
+from respond import stream_ai_response
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -378,6 +378,31 @@ def upload_resource():
     )
     db.session.add(resource)
     db.session.commit()
+    # Build per-class RAG embeddings for the new resource's text (if any).
+    app_utils.index_resource(resource)
+    return redirect(url_for("resources_page"))
+
+
+@app.route("/resources/<int:resource_id>/delete", methods=["POST"])
+@teacher_required
+def delete_resource(resource_id):
+    resource = app_utils.get_resource_for_teacher(resource_id, current_user)
+    if not resource:
+        abort(403)
+    # Remove the uploaded PDF from disk (best-effort). Only touch files inside the
+    # upload folder, keyed by basename, so a stored path can't escape it.
+    if resource.file_path:
+        disk_path = os.path.join(
+            app.config["UPLOAD_FOLDER"], os.path.basename(resource.file_path)
+        )
+        try:
+            os.remove(disk_path)
+        except OSError:
+            pass  # already gone / never on disk (e.g. seeded sample) — fine
+    # ResourceChunk rows cascade via the relationship; this also drops the
+    # per-class RAG embeddings for this resource.
+    db.session.delete(resource)
+    db.session.commit()
     return redirect(url_for("resources_page"))
 
 
@@ -440,7 +465,22 @@ def chat_stream():
     guidance = (
         chat_session.assignment.guidance_note if chat_session.assignment else ""
     ) or ""  # private -> prompt only, never streamed to the student
-    closest_lecture = closest_chunk_from_rag(user_message)
+    # Scope RAG to the class being asked about: the assignment's class when the
+    # chat is tied to one, otherwise every class the student is enrolled in. This
+    # keeps another class's lecture material out of the retrieved context.
+    if chat_session.assignment:
+        rag_class_ids = [chat_session.assignment.class_id]
+    else:
+        rag_class_ids = app_utils.class_ids_for_student(current_user)
+    closest_lecture, lecture_source = app_utils.closest_lecture_chunk(
+        user_message, rag_class_ids
+    )
+    # Give the student a link back to the resource the answer drew on. Built here
+    # in request scope so the streaming generator only has to emit it.
+    if lecture_source:
+        lecture_source["url"] = url_for(
+            "resources_page", _anchor=f"resource-{lecture_source['id']}"
+        )
     error_db = rlhf.build_error_database(user_message)
     # Scope homework context to the assignment the student is asking about. Only
     # fall back to every assignment when the chat isn't tied to one (a general
@@ -477,7 +517,12 @@ def chat_stream():
         # Persist the assistant reply once fully streamed.
         app_utils.add_message(chat_session, "assistant", "".join(collected))
         yield "data: " + json.dumps(
-            {"done": True, "can_rate": True, "session_id": session_id}
+            {
+                "done": True,
+                "can_rate": True,
+                "session_id": session_id,
+                "source": lecture_source,
+            }
         ) + "\n\n"
 
     resp = Response(stream_with_context(generate()), mimetype="text/event-stream")
