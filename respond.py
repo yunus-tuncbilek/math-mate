@@ -129,6 +129,9 @@ def stream_ai_response(
     prompt = build_prompt(
         user_message, chat_history, homework, lecture, guidance, error_db
     )
+
+    print(prompt)
+
     return stream_llm(prompt)
 
 

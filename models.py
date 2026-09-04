@@ -160,7 +160,8 @@ class Resource(db.Model):
         db.Integer, db.ForeignKey("classes.id"), nullable=False, index=True
     )
     title = db.Column(db.String(255), nullable=False)
-    file_path = db.Column(db.String(512), nullable=False)
+    file_path = db.Column(db.String(512), nullable=True)
+    text_content = db.Column(db.Text, nullable=True)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     klass = db.relationship("Class", back_populates="resources")

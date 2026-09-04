@@ -120,6 +120,7 @@ def seed():
                 class_id=klass.id,
                 title="Lecture notes (sample)",
                 file_path="rag/data/lectures.txt",
+                text_content="Sample lecture notes text content.",
             )
         )
 

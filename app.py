@@ -353,18 +353,28 @@ def upload_resource():
 
     file = request.files.get("pdf")
     title = request.form.get("title", "").strip()
-    if not file or file.filename == "" or not allowed_file(file.filename):
-        flash("Please choose a PDF file.")
+    text_content = request.form.get("text_content", "").strip() or None
+    has_file = file and file.filename != ""
+
+    if not has_file and not text_content:
+        flash("Please choose a PDF file or provide a text version.")
         return redirect(url_for("resources_page"))
 
-    filename = secure_filename(f"{int(time.time())}_{file.filename}")
-    dest_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-    file.save(dest_path)
+    file_path = None
+    if has_file:
+        if not allowed_file(file.filename):
+            flash("Please choose a PDF file.")
+            return redirect(url_for("resources_page"))
+        filename = secure_filename(f"{int(time.time())}_{file.filename}")
+        dest_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(dest_path)
+        file_path = os.path.join("uploads", filename)  # served from /static
 
     resource = Resource(
         class_id=klass.id,
-        title=title or file.filename,
-        file_path=os.path.join("uploads", filename),  # served from /static
+        title=title or (file.filename if has_file else "Untitled resource"),
+        file_path=file_path,
+        text_content=text_content,
     )
     db.session.add(resource)
     db.session.commit()
@@ -374,12 +384,19 @@ def upload_resource():
 # --------------------------------------------------------------------------- #
 # AI chat (student)
 # --------------------------------------------------------------------------- #
+def _format_assignment(assignment):
+    """Public one-line assignment text a student may use as AI context."""
+    return f"{assignment.title}: {assignment.description or ''}"
+
+
 def _homework_context_for_student():
-    """Public assignment text a student may use as AI context (no guidance)."""
+    """Public text for every assignment the student can see (no guidance).
+
+    Used only for general questions, where the student hasn't tied the chat to a
+    specific assignment.
+    """
     assignments = app_utils.assignments_for_user(current_user)
-    return "\n".join(
-        f"{a.title}: {a.description or ''}" for a in assignments
-    )
+    return "\n".join(_format_assignment(a) for a in assignments)
 
 
 @app.route("/chat/stream", methods=["POST"])
@@ -425,7 +442,14 @@ def chat_stream():
     ) or ""  # private -> prompt only, never streamed to the student
     closest_lecture = closest_chunk_from_rag(user_message)
     error_db = rlhf.build_error_database(user_message)
-    homework_ctx = _homework_context_for_student()
+    # Scope homework context to the assignment the student is asking about. Only
+    # fall back to every assignment when the chat isn't tied to one (a general
+    # question), so the AI never sees unrelated homework.
+    if chat_session.assignment:
+        print(f"Using assignment context for {chat_session.assignment.title}")
+        homework_ctx = _format_assignment(chat_session.assignment)
+    else:
+        homework_ctx = _homework_context_for_student()
 
     # Persist the student's message before streaming the reply.
     app_utils.add_message(chat_session, "user", user_message)
