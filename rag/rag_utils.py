@@ -9,8 +9,6 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 warnings.filterwarnings("ignore")
 
 # import libraries
-import json
-import pickle
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -32,19 +30,8 @@ def _get_model(model_name="all-MiniLM-L6-v2"):
     return _model_cache[model_name]
 
 
-def load_data(file_path):
-    """Load lecture data from text file."""
-    assert os.path.exists(file_path), f"File not found: {file_path}"
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        data_txt = f.read()
-
-    print(f"Loaded data from {file_path}")
-    return data_txt
-
-
-def get_chunks(data_txt, save_to=None, chunk_size=512, overlap=128):
-    """Split data into chunks and optionally save to file."""
+def get_chunks(data_txt, chunk_size=512, overlap=128):
+    """Split text into chunks (lecture-delimited if present, else fixed-size)."""
     # Check if data contains lectures, which must start with "Lecture"
     if "Lecture" in data_txt:
         lectures = data_txt.split("Lecture")
@@ -84,17 +71,11 @@ def get_chunks(data_txt, save_to=None, chunk_size=512, overlap=128):
             f"Created {len(chunks)} chunks of {chunk_size} characters with {overlap} character overlap"
         )
 
-    # Save chunks if requested
-    if save_to:
-        with open(save_to, "w", encoding="utf-8") as f:
-            json.dump(chunks, f, indent=2)
-        # print(f"Chunks saved to {save_to}")
-
     return chunks
 
 
-def get_embeddings(chunks, save_to=None, model_name="all-MiniLM-L6-v2"):
-    """Generate embeddings for chunks and optionally save to file."""
+def get_embeddings(chunks, model_name="all-MiniLM-L6-v2"):
+    """Generate embeddings for a list of text chunks."""
     if not chunks:
         print("No chunks provided for embedding generation")
         return None
@@ -102,18 +83,17 @@ def get_embeddings(chunks, save_to=None, model_name="all-MiniLM-L6-v2"):
     # Initialize sentence transformer model (cached across calls)
     model = _get_model(model_name)
 
-    # Generate embeddings
-    embeddings = model.encode(chunks)
+    return model.encode(chunks)
 
-    # print(f"Generated embeddings for {len(chunks)} chunks using {model_name}")
 
-    # Save embeddings if requested
-    if save_to:
-        with open(save_to, "wb") as f:
-            pickle.dump(embeddings, f)
-        # print(f"Embeddings saved to {save_to}")
+def serialize_embedding(vec):
+    """Pack a single embedding vector into raw float32 bytes for DB storage."""
+    return np.asarray(vec, dtype=np.float32).tobytes()
 
-    return embeddings
+
+def deserialize_embedding(blob):
+    """Restore a 1-D float32 embedding from bytes written by serialize_embedding."""
+    return np.frombuffer(blob, dtype=np.float32)
 
 
 def retrieve_closest_chunk(
@@ -163,17 +143,3 @@ def retrieve_closest_chunk(
             query_embedding,
             similarities,
         )
-
-def load_chunks(file_path):
-    """Load chunks from a JSON file."""
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Chunks file not found: {file_path}")
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def load_embeddings(file_path):
-    """Load embeddings from a pickle file."""
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Embeddings file not found: {file_path}")
-    with open(file_path, "rb") as f:
-        return pickle.load(f)

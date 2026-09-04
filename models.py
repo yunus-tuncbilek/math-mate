@@ -160,13 +160,43 @@ class Resource(db.Model):
         db.Integer, db.ForeignKey("classes.id"), nullable=False, index=True
     )
     title = db.Column(db.String(255), nullable=False)
-    file_path = db.Column(db.String(512), nullable=False)
+    file_path = db.Column(db.String(512), nullable=True)
+    text_content = db.Column(db.Text, nullable=True)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     klass = db.relationship("Class", back_populates="resources")
+    chunks = db.relationship(
+        "ResourceChunk", back_populates="resource", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Resource {self.title!r}>"
+
+
+class ResourceChunk(db.Model):
+    """One RAG chunk of a Resource, with its precomputed embedding.
+
+    Embeddings are class-scoped by construction: a chunk belongs to a Resource,
+    which belongs to a Class, so retrieval filters by ``Resource.class_id`` and a
+    student never sees another class's lecture material. The embedding is stored
+    as raw float32 bytes (see ``rag.rag_utils.serialize_embedding``); deleting a
+    Resource cascades to its chunks.
+    """
+
+    __tablename__ = "resource_chunks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    resource_id = db.Column(
+        db.Integer, db.ForeignKey("resources.id"), nullable=False, index=True
+    )
+    chunk_index = db.Column(db.Integer, nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    embedding = db.Column(db.LargeBinary, nullable=False)
+
+    resource = db.relationship("Resource", back_populates="chunks")
+
+    def __repr__(self):
+        return f"<ResourceChunk resource={self.resource_id} #{self.chunk_index}>"
 
 
 class ChatSession(db.Model):

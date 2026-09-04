@@ -542,6 +542,41 @@ ul {
     color: #b3261e;
 }
 
+/* "Read further" pill under an AI answer, linking to the RAG source resource. */
+.chat-source {
+    align-self: flex-start;
+    margin-top: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 100%;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--primary-dark);
+    background: #eef4fb;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.chat-source:hover {
+    background: #dce9f7;
+    border-color: var(--border-strong);
+}
+
+/* Highlight a resource when arrived at via a chat source link (#resource-N). */
+[id^="resource-"]:target {
+    background: #fff6e5;
+    box-shadow: 0 0 0 2px var(--accent);
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    transition: background 0.4s;
+}
+
 /* "AI is thinking" animated dots. */
 .typing-indicator {
     display: inline-flex;

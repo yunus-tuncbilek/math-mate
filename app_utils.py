@@ -18,6 +18,7 @@ from models import (
     ClassStudent,
     Assignment,
     Resource,
+    ResourceChunk,
     ChatSession,
     ChatMessage,
     Feedback,
@@ -147,6 +148,16 @@ def get_assignment_for_teacher(assignment_id, teacher):
     return assignment
 
 
+def get_resource_for_teacher(resource_id, teacher):
+    """Fetch a resource only if it belongs to a class this teacher owns."""
+    resource = Resource.query.get(resource_id)
+    if not resource:
+        return None
+    if resource.klass.teacher_id != teacher.id:
+        return None
+    return resource
+
+
 def resources_for_user(user):
     if user.is_teacher:
         ids = class_ids_for_teacher(user)
@@ -159,6 +170,76 @@ def resources_for_user(user):
         .order_by(Resource.uploaded_at.desc())
         .all()
     )
+
+
+# --------------------------------------------------------------------------- #
+# RAG — per-class lecture embeddings (see models.ResourceChunk)
+# --------------------------------------------------------------------------- #
+def index_resource(resource):
+    """(Re)build the embedding chunks for a Resource. Returns the chunk count.
+
+    Only ``text_content`` is indexed — there is no PDF text extraction, so a
+    file-only resource contributes no searchable chunks. Safe to call repeatedly:
+    it replaces any existing chunks for the resource.
+    """
+    from rag import rag_utils  # local import: keeps torch off the app-boot path
+
+    ResourceChunk.query.filter_by(resource_id=resource.id).delete()
+
+    text = (resource.text_content or "").strip()
+    if not text:
+        db.session.commit()
+        return 0
+
+    chunks = rag_utils.get_chunks(text)
+    embeddings = rag_utils.get_embeddings(chunks)
+    for i, (chunk, emb) in enumerate(zip(chunks, embeddings)):
+        db.session.add(
+            ResourceChunk(
+                resource_id=resource.id,
+                chunk_index=i,
+                text=chunk,
+                embedding=rag_utils.serialize_embedding(emb),
+            )
+        )
+    db.session.commit()
+    return len(chunks)
+
+
+def closest_lecture_chunk(question, class_ids, min_similarity=0.0):
+    """Most similar lecture chunk to ``question`` within ``class_ids``.
+
+    Returns ``(text, source)`` where ``source`` is ``{"id", "title"}`` for the
+    Resource the chunk came from (so the UI can link the student to it), or
+    ``None``. Retrieval is scoped to the given classes so a student never gets
+    context from material outside the class they're asking about. ``text`` is ""
+    and ``source`` is ``None`` when there are no indexed chunks or none clear
+    ``min_similarity``.
+    """
+    import numpy as np
+
+    from rag import rag_utils
+
+    if not class_ids:
+        return "", None
+
+    rows = (
+        ResourceChunk.query.join(Resource, ResourceChunk.resource_id == Resource.id)
+        .filter(Resource.class_id.in_(class_ids))
+        .all()
+    )
+    if not rows:
+        return "", None
+
+    embeddings = np.vstack([rag_utils.deserialize_embedding(r.embedding) for r in rows])
+    texts = [r.text for r in rows]
+    text, similarity, idx, _q, _sims = rag_utils.retrieve_closest_chunk(
+        question, texts, embeddings
+    )
+    if text is None or similarity < min_similarity:
+        return "", None
+    resource = rows[idx].resource
+    return text, {"id": resource.id, "title": resource.title}
 
 
 # --------------------------------------------------------------------------- #

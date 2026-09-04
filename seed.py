@@ -8,12 +8,12 @@ Mapping from the old JSON shape to the new schema:
   users.json         -> User        (login username becomes ``name``; email kept)
   homeworks.json     -> Class + Assignment (one Class per distinct teacher+name)
   interactions.json  -> ChatSession + ChatMessage ("ai" role -> "assistant")
-  rag/data/lectures  -> Resource    (a sample lecture-notes resource per class)
+  (a sample lecture-notes Resource is created per class and RAG-indexed)
 """
 from datetime import datetime
 
 from app import app  # noqa: E402  (import creates the Flask app + config)
-from app_utils import load_json, generate_invite_code
+from app_utils import load_json, generate_invite_code, index_resource
 from extensions import db
 from models import (
     User,
@@ -114,14 +114,15 @@ def seed():
     db.session.flush()
 
     # ---- Resources (sample lecture notes per class) ----
+    seeded_resources = []
     for klass in classes_by_key.values():
-        db.session.add(
-            Resource(
-                class_id=klass.id,
-                title="Lecture notes (sample)",
-                file_path="rag/data/lectures.txt",
-            )
+        resource = Resource(
+            class_id=klass.id,
+            title="Lecture notes (sample)",
+            text_content="Sample lecture notes text content.",
         )
+        db.session.add(resource)
+        seeded_resources.append(resource)
 
     # ---- Chat sessions + messages (from interactions.json) ----
     for it in interactions_json:
@@ -144,6 +145,11 @@ def seed():
             )
 
     db.session.commit()
+
+    # Build per-class RAG embeddings for the seeded resources.
+    for resource in seeded_resources:
+        index_resource(resource)
+
     print(
         f"Seeded: {len(users_by_username)} users, {len(classes_by_key)} classes, "
         f"{len(assignments_by_title)} assignments, "
