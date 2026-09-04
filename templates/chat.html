@@ -5,31 +5,32 @@
 {% block content %}
 <div class="section">
     <h2>Conversation with AI</h2>
-    <div class="interaction-list">
-        <ul>
-            {% for msg in messages %}
-            <li>
-                {% if msg.role == 'user' %}
-                    <strong>You:</strong> {{ msg.text }}
-                {% else %}
-                    <strong>AI:</strong> {{ msg.text }}
-                    {% if msg.source %}
-                        <small class="source">Source: {{ msg.source.split()[:10] | join(' ') }}...</small>
-                    {% endif %}
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
+    <p>Ask a question about your coursework. Choose an assignment for focused
+        help, or leave it as a general question.</p>
+
+    {# Transcript is built live by chat.js as the reply streams in. #}
+    <div class="chat-scroll" id="chat-scroll">
+        <ul class="chat-messages" id="chat-messages"></ul>
+        <p class="chat-empty" id="chat-empty">Ask your first question to get started.</p>
     </div>
-    <form method="post" class="input-row">
-        <input type="text" name="message" placeholder="Type your message..." autofocus>
-        <button type="submit">Send</button>
+
+    {# JS-driven: chat.js intercepts submit and streams from data-stream-url. #}
+    <form id="chat-form" class="input-row" data-stream-url="{{ url_for('chat_stream') }}">
+        <select name="assignment_id" id="assignment-select">
+            <option value="">General question</option>
+            {% for a in assignments %}
+            <option value="{{ a.id }}">{{ a.title }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" id="chat-input" name="message" placeholder="Type your message..." autocomplete="off"
+            autofocus required>
+        <button type="submit" id="chat-send">Send</button>
     </form>
 </div>
 
 {# ---------------- Student feedback (powers RLHF-lite) ---------------- #}
-{% if can_rate %}
-<div class="section feedback-box">
+{# Always in the DOM but hidden; chat.js reveals it once the AI has answered. #}
+<div class="section feedback-box" id="feedback-box" hidden>
     <h2>How was this help?</h2>
     {% if feedback %}
         <p class="feedback-current">
@@ -56,10 +57,13 @@
                   placeholder="What worked, or what could be better? (optional)">{{ feedback.comment if feedback and feedback.comment else '' }}</textarea>
     </form>
 </div>
-{% endif %}
 
 <div class="link">
     <a href="{{ url_for('ask_page') }}">Ask another question</a> ·
     <a href="{{ url_for('history_page') }}">Chat History</a>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
 {% endblock %}
