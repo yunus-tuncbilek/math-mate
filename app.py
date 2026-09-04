@@ -28,7 +28,7 @@ from flask_login import (
 
 from config import Config
 from extensions import db, migrate, login_manager
-from models import User, Class, Assignment, Resource, ChatSession, ChatMessage
+from models import User, Class, Assignment, Resource, ChatSession
 import app_utils
 import rlhf
 from respond import stream_ai_response, closest_chunk_from_rag
@@ -382,98 +382,6 @@ def _homework_context_for_student():
     )
 
 
-@app.route("/ask", methods=["POST"])
-@student_required
-def ask():
-    question = request.form.get("question", "").strip()
-    if not question:
-        return redirect(url_for("ask_page"))
-
-    assignment_id = request.form.get("assignment_id", type=int)
-    guidance = ""
-    if assignment_id:
-        # Only honour an assignment the student is actually enrolled for.
-        allowed_ids = {a.id for a in app_utils.assignments_for_user(current_user)}
-        if assignment_id in allowed_ids:
-            assignment = Assignment.query.get(assignment_id)
-            guidance = assignment.guidance_note or ""  # private -> prompt only
-        else:
-            assignment_id = None
-
-    closest_lecture = closest_chunk_from_rag(question)
-    homework_ctx = _homework_context_for_student()
-    error_db = rlhf.build_error_database(question)
-    ai_reply = get_ai_response(
-        question,
-        "",
-        homework_ctx,
-        lecture=closest_lecture,
-        guidance=guidance,
-        error_db=error_db,
-    )
-
-    chat_session = app_utils.create_chat_session(current_user, assignment_id)
-    app_utils.add_message(chat_session, "user", question)
-    app_utils.add_message(chat_session, "assistant", ai_reply)
-    session["chat_session_id"] = chat_session.id
-    return redirect(url_for("chat"))
-
-
-@app.route("/chat", methods=["GET", "POST"])
-@student_required
-def chat():
-    chat_session_id = session.get("chat_session_id")
-    chat_session = ChatSession.query.get(chat_session_id) if chat_session_id else None
-
-    # A student may only ever access their own session.
-    if chat_session and chat_session.student_id != current_user.id:
-        abort(403)
-
-    if request.method == "POST" and chat_session:
-        user_message = request.form.get("message", "").strip()
-        if user_message:
-            history = "\n".join(
-                f"{m.role}: {m.content}" for m in chat_session.messages
-            )
-            guidance = (
-                chat_session.assignment.guidance_note
-                if chat_session.assignment
-                else ""
-            ) or ""
-            closest_lecture = closest_chunk_from_rag(user_message)
-            error_db = rlhf.build_error_database(user_message)
-            ai_reply = get_ai_response(
-                user_message,
-                history,
-                _homework_context_for_student(),
-                lecture=closest_lecture,
-                guidance=guidance,
-                error_db=error_db,
-            )
-            app_utils.add_message(chat_session, "user", user_message)
-            app_utils.add_message(chat_session, "assistant", ai_reply)
-
-    messages = (
-        [{"role": m.role, "text": m.content} for m in chat_session.messages]
-        if chat_session
-        else []
-    )
-    feedback = (
-        _serialize_feedback(app_utils.get_feedback_for_session(chat_session))
-        if chat_session
-        else None
-    )
-    # Only prompt for feedback once the AI has actually replied.
-    can_rate = any(m["role"] == "assistant" for m in messages)
-    return render_template(
-        "chat.html",
-        active="ask",
-        messages=messages,
-        feedback=feedback,
-        can_rate=can_rate,
-    )
-
-
 @app.route("/chat/stream", methods=["POST"])
 @student_required
 def chat_stream():
@@ -574,12 +482,12 @@ def submit_feedback():
     # Accept only the two supported ratings (1 = not helpful, 5 = helpful).
     if rating not in (1, 5):
         flash("Please choose whether the help was useful.")
-        return redirect(url_for("chat"))
+        return redirect(url_for("ask_page"))
 
     comment = request.form.get("comment", "")
     app_utils.save_feedback(chat_session, rating, comment)
     flash("Thanks! Your feedback helps Math-Mate improve.")
-    return redirect(url_for("chat"))
+    return redirect(url_for("ask_page"))
 
 
 # --------------------------------------------------------------------------- #
