@@ -398,7 +398,7 @@ def delete_resource(resource_id):
         try:
             os.remove(disk_path)
         except OSError:
-            pass  # already gone / never on disk (e.g. seeded sample) — fine
+            pass  # already gone / never on disk — fine
     # ResourceChunk rows cascade via the relationship; this also drops the
     # per-class RAG embeddings for this resource.
     db.session.delete(resource)

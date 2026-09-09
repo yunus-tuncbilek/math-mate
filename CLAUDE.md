@@ -13,7 +13,6 @@ Math-Mate is a Flask web app that is both a per-class content/homework manager a
 pip install -r requirements.txt
 cp .env.example .env        # then set `secret_key` and TOGETHER_API_KEY
 flask db upgrade            # apply Alembic migrations (creates tables)
-python seed.py              # optional: idempotent sample data from sample_data/*.json
 
 # Run (dev)
 python app.py               # debug server on the Flask default port
@@ -28,7 +27,7 @@ flask db migrate -m "message"
 flask db upgrade
 ```
 
-`flask` CLI commands need `FLASK_APP=app.py` (the Dockerfile sets it; set it locally if unset). `flask seed` is the CLI equivalent of `python seed.py`.
+`flask` CLI commands need `FLASK_APP=app.py` (the Dockerfile sets it; set it locally if unset).
 
 ## Environment & config
 
@@ -72,4 +71,4 @@ Heavy ML deps (`torch`/`sentence-transformers`) and the Together client are impo
 
 ## Deployment
 
-Docker image (`Dockerfile`, Python 3.9) runs `flask db upgrade && python seed.py && gunicorn ... app:app` at container start (port 7860). CI (`.github/workflows/tests.yml`) runs `pytest -q` on every push/PR to `main`; on `main` only, after tests pass, it force-pushes to a Hugging Face Space (`HF_TOKEN` secret).
+Docker image (`Dockerfile`, Python 3.9) runs `flask db upgrade && gunicorn ... app:app` at container start (port 7860). CI (`.github/workflows/tests.yml`) runs `pytest -q` on every push/PR to `main`; on `main` only, after tests pass, it force-pushes to a Hugging Face Space (`HF_TOKEN` secret).

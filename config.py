@@ -10,7 +10,7 @@ import os
 from dotenv import load_dotenv
 
 # Load .env before any config values are read, so every entry point
-# (python app.py, flask CLI, seed.py) honours it consistently.
+# (python app.py, flask CLI) honours it consistently.
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))

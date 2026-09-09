@@ -19,6 +19,6 @@ ENV FLASK_APP=app.py
 # Expose default port
 EXPOSE 7860
 
-# Apply DB migrations, seed from sample_data (idempotent), then serve.
+# Apply DB migrations, then serve.
 # Runs at startup (not build) so the SQLite file lives in the writable layer.
-CMD ["sh", "-c", "flask db upgrade && python seed.py && gunicorn --access-logfile - --log-level debug -w 1 -b 0.0.0.0:7860 app:app"]
+CMD ["sh", "-c", "flask db upgrade && gunicorn --access-logfile - --log-level debug -w 1 -b 0.0.0.0:7860 app:app"]

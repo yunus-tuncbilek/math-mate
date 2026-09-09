@@ -92,8 +92,9 @@ homework process and enhances learning through intelligent, context-aware suppor
 - **CI/CD:** **GitHub Actions** (`.github/workflows/tests.yml`) runs the pytest
   suite on every push and PR to `main`, then — only after tests pass, only on
   `main` — auto-deploys by pushing to a **Hugging Face Space**.
-- **Deployment:** **Docker** image that applies migrations, idempotently seeds
-  sample data, and serves via Gunicorn on Hugging Face Spaces. The Dockerfile uses layer caching to avoid re-installing packages with every build, leading to faster rebuilds. 
+- **Deployment:** **Docker** image that applies migrations and serves via
+  Gunicorn on Hugging Face Spaces. The Dockerfile uses layer caching to avoid
+  re-installing packages with every build, leading to faster rebuilds. 
 
 ## Getting Started
 
@@ -112,7 +113,6 @@ homework process and enhances learning through intelligent, context-aware suppor
 4. **Set up the database:**
    ```bash
    flask db upgrade   # create the tables from the Alembic migrations
-   python seed.py     # (optional) populate with sample data
    ```
 5. **Add your AI key:** get an API key from [Together AI](https://www.together.ai)
    and store it in `.env` as `TOGETHER_API_KEY`.

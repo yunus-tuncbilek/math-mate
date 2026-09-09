@@ -8,9 +8,8 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 # The Together client is created lazily so that simply importing this module
-# (e.g. from migration/seed tooling or during app boot) does not require the
-# TOGETHER_API_KEY or pull in the heavy ML dependencies until an actual LLM
-# call is made.
+# (e.g. during app boot) does not require the TOGETHER_API_KEY or pull in the
+# heavy ML dependencies until an actual LLM call is made.
 _client = None
 
 

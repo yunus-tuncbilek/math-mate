@@ -1,7 +1,5 @@
 """SQLAlchemy models for Math-Mate.
 
-Replaces the old ``sample_data/*.json`` / ``data/*.json`` storage.
-
 SECURITY NOTE — ``Assignment.guidance_note``:
     ``guidance_note`` is the teacher's *private* instruction to the AI (e.g.
     "don't reveal answers, be encouraging"). It must NEVER reach a student.

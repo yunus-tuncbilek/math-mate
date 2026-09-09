@@ -1,13 +1,8 @@
 """Data-access helpers.
 
-The JSON helpers (``load_json`` / ``save_json``) are retained because the seed
-script (``seed.py``) still reads the legacy ``sample_data/*.json`` files. All
-application reads/writes now go through the SQLAlchemy helpers below.
+All application reads/writes go through the SQLAlchemy helpers below.
 """
-import json
-import os
 import secrets
-import string
 
 from werkzeug.security import generate_password_hash
 
@@ -23,31 +18,6 @@ from models import (
     ChatMessage,
     Feedback,
 )
-
-
-# --------------------------------------------------------------------------- #
-# Legacy JSON helpers (used only by the seed / migration script)
-# --------------------------------------------------------------------------- #
-def load_json(folder, filename, default=""):
-    full_path = os.path.join(folder, filename)
-    if os.path.exists(full_path):
-        with open(full_path, "r", encoding="utf-8") as f:
-            try:
-                return json.load(f)
-            except Exception:
-                return default
-    return default
-
-
-def save_json(folder, filename, data=""):
-    # atomic write to avoid corruption from concurrent processes
-    full_path = os.path.join(folder, filename)
-    tmp = full_path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp, full_path)
 
 
 # --------------------------------------------------------------------------- #
